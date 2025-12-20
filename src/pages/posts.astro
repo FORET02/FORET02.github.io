@@ -66,7 +66,7 @@ type PostItem = {
   tags: string[];
   excerpt: string;
   slug: string;
-  image: string;
+  image: string | null; // ✅ 수정: string -> string | null
 };
 
 // Transform content collection posts to match the expected format
@@ -85,7 +85,19 @@ const posts: PostItem[] = await Promise.all(
       excerpt = `Read more about ${post.data.title}...`;
     }
 
-    const image = post.data.image || postImages[slug] || defaultPostImage;
+    // ✅ 수정: 이미지 결정 로직(의도적 제거 vs 미지정 구분)
+    const hasImageKey = Object.prototype.hasOwnProperty.call(post.data, "image");
+    const fm = post.data.image;
+
+    let image: string | null;
+
+    if (hasImageKey) {
+      // frontmatter에 image 키가 있으면: 비어 있으면 숨김
+      image = typeof fm === "string" && fm.trim().length > 0 ? fm : null;
+    } else {
+      // frontmatter에 image 키가 없으면: 매핑 → 없으면 default
+      image = slug in postImages ? postImages[slug] : defaultPostImage;
+    }
 
     const postDate: Date =
       post.data.date instanceof Date ? post.data.date : new Date(post.data.date);
@@ -232,7 +244,10 @@ const allTags = Array.from(new Set(posts.flatMap((post) => post.tags))).sort();
                             </div>
 
                             <div class="post-image-container">
-                              <img src={post.image} alt={post.title} class="post-image" />
+                              {/* ✅ 수정: image가 있을 때만 렌더링 */}
+                              {post.image && (
+                                <img src={post.image} alt={post.title} class="post-image" />
+                              )}
                             </div>
                           </div>
                         </div>
