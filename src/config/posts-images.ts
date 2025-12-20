@@ -6,7 +6,7 @@ export const postImages: Record<string, string | null> = {
   "quantum-computing-milestone": "/images/posts/lcd-32872_640.png",
   "market-analysis-template-2025": "/images/posts/call-3613071_640.png",
   "major-cybersecurity-breakthrough": "/images/posts/headphones-1899759_640.png",
-  // "business-template-strategic-planning-framework": "/images/posts/icons-6931458_640.png",
+  //"business-template-strategic-planning-framework": "/images/posts/icons-6931458_640.png",
   "strategic-business-planning-for-2025": "/images/posts/cloud-3331240_640.png",
   "the-rise-of-ai-powered-development-tools-in-2025": "/images/posts/man-1459246_640.png",
 };
