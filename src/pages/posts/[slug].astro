@@ -39,6 +39,17 @@ if (!post) {
   throw new Error("Post is undefined");
 }
 
+// Format date to "YYYY년 M월 D일" in Korean locale
+function formatDateText(dateValue: unknown): string {
+  const d = dateValue instanceof Date ? dateValue : new Date(String(dateValue));
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "Asia/Seoul",
+  }).format(d);
+}
+
 // With glob loader in Astro 6.0, post has:
 // - post.data: frontmatter (already parsed by schema)
 // - post.body: markdown content (raw string)
@@ -116,7 +127,9 @@ if (
               <span class="post-detail-author"
                 >{post.data.author || "Foret"}</span
               >
-              <span class="post-detail-date">{post.data.date}</span>
+              <span class="post-detail-date">
+                {formatDateText(post.data.date)}
+              </span>
               <span class="post-detail-read-time">{post.data.readTime}</span>
             </div>
           </div>

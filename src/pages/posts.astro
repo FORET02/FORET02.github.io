@@ -11,37 +11,40 @@ import { postImages, defaultPostImage } from "../config/posts-images";
 // Get all posts from content collection
 const allPosts = (await getCollection("posts")) as CollectionEntry<"posts">[];
 
-// Convert date format from "6/27/2025" to "June 27, 2025"
-function formatDate(dateString: string): string {
-  const [month, day, year] = dateString.split("/");
-  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  return date.toLocaleDateString("ko-KR", {
+// Format date to "YYYY년 M월 D일" in Korean locale
+function formatDateText(date: Date): string {
+  return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  });
+    timeZone: "Asia/Seoul",
+  }).format(date);
+}
+
+// Grouping/Key date(KST fixed)
+function formatDateKey(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 // Extract plain text from markdown content
-function extractExcerptFromMarkdown(
-  content: string,
-  maxLength: number = 300
-): string {
-  // Remove markdown syntax
+function extractExcerptFromMarkdown(content: string, maxLength: number = 300): string {
   let text = content
-    .replace(/^#+\s+/gm, "") // Remove headers
-    .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1") // Remove links, keep text
-    .replace(/\*\*([^\*]+)\*\*/g, "$1") // Remove bold
-    .replace(/\*([^\*]+)\*/g, "$1") // Remove italic
-    .replace(/`([^`]+)`/g, "$1") // Remove inline code
-    .replace(/```[\s\S]*?```/g, "") // Remove code blocks
-    .replace(/\n+/g, " ") // Replace newlines with space
+    .replace(/^#+\s+/gm, "")
+    .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1")
+    .replace(/\*\*([^\*]+)\*\*/g, "$1")
+    .replace(/\*([^\*]+)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/\n+/g, " ")
     .trim();
 
-  // Get first maxLength characters
   if (text.length > maxLength) {
     text = text.substring(0, maxLength);
-    // Try to cut at a sentence boundary
     const lastPeriod = text.lastIndexOf(".");
     const lastSpace = text.lastIndexOf(" ");
     const cutPoint = lastPeriod > maxLength * 0.7 ? lastPeriod + 1 : lastSpace;
@@ -54,67 +57,65 @@ function extractExcerptFromMarkdown(
   return text;
 }
 
+type PostItem = {
+  id: string;
+  date: Date;       
+  dateKey: string;  
+  dateText: string;  
+  title: string;
+  tags: string[];
+  excerpt: string;
+  slug: string;
+  image: string;
+};
+
 // Transform content collection posts to match the expected format
-const posts = await Promise.all(
+const posts: PostItem[] = await Promise.all(
   allPosts.map(async (post: any) => {
-    // Get slug from post - try multiple fallbacks
-    // In Astro, post.slug should be available, but if not, extract from id
     let slug = post.slug;
     if (!slug && post.id) {
-      // Extract slug from id (e.g., "posts/my-post.md" -> "my-post")
       slug = post.id.split("/").pop()?.replace(/\.md$/, "") || "";
     }
     if (!slug) {
       console.warn("Post missing slug:", post);
     }
 
-    // Try to get excerpt from frontmatter first
     let excerpt = post.data.excerpt;
-
-    // If no excerpt in frontmatter, generate a default excerpt from title
     if (!excerpt) {
-      // In Astro 6.0, post.body is no longer available
-      // Use a default excerpt based on title or provide a generic message
       excerpt = `Read more about ${post.data.title}...`;
     }
 
-    // Get image from frontmatter, fallback to mapping, then default
     const image = post.data.image || postImages[slug] || defaultPostImage;
+
+    const postDate: Date =
+      post.data.date instanceof Date ? post.data.date : new Date(post.data.date);
 
     return {
       id: slug,
-      date: formatDate(post.data.date),
+      date: postDate,
+      dateKey: formatDateKey(postDate),
+      dateText: formatDateText(postDate),
       title: post.data.title,
       tags: post.data.tags || [],
-      excerpt: excerpt,
-      //readTime: post.data.readTime || "5 min read",
-      slug: slug,
-      image: image,
+      excerpt,
+      slug,
+      image,
     };
   })
 );
 
 // Sort by date (newest first)
-posts.sort((a, b) => {
-  return new Date(b.date).getTime() - new Date(a.date).getTime();
-});
+posts.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-// Group posts by date
-const groupedPosts = posts.reduce(
-  (acc, post) => {
-    if (!acc[post.date]) {
-      acc[post.date] = [];
-    }
-    acc[post.date].push(post);
-    return acc;
-  },
-  {} as Record<string, typeof posts>
-);
+// Group posts by dateKey (YYYY-MM-DD)
+const groupedPosts = posts.reduce((acc, post) => {
+  if (!acc[post.dateKey]) acc[post.dateKey] = [];
+  acc[post.dateKey].push(post);
+  return acc;
+}, {} as Record<string, PostItem[]>);
 
 // Extract all unique tags from posts
-const allTags = Array.from(
-  new Set(posts.flatMap((post) => post.tags.map((tag: string) => tag)))
-).sort();
+const allTags = Array.from(new Set(posts.flatMap((post) => post.tags))).sort();
 ---
 
 <html lang="en">
@@ -125,11 +126,9 @@ const allTags = Array.from(
     <meta name="generator" content={Astro.generator} />
     <title>Blog Posts - Foret Blog</title>
     <script>
-      // Disable browser scroll restoration and ensure page starts at top
       if ("scrollRestoration" in history) {
         history.scrollRestoration = "manual";
       }
-      // Immediately scroll to top on page load
       window.scrollTo(0, 0);
     </script>
   </head>
@@ -180,10 +179,7 @@ const allTags = Array.from(
           <div class="tags-list">
             {
               allTags.map((tag) => (
-                <button
-                  class="tag-button"
-                  data-tag={tag.toLowerCase().replace(/\s+/g, "-")}
-                >
+                <button class="tag-button" data-tag={tag.toLowerCase().replace(/\s+/g, "-")}>
                   {tag}
                 </button>
               ))
@@ -193,67 +189,58 @@ const allTags = Array.from(
 
         <div class="posts-list posts-content-animate">
           {
-            Object.entries(groupedPosts).map(([date, datePosts]) => (
-              <div class="date-group" data-date={date}>
-                <h2 class="date-header">{date}</h2>
-                <div class="date-card">
-                  {datePosts.map((post) => (
-                    <article class="post-item" data-post-id={post.slug}>
-                      <div class="post-summary">
-                        <div class="title-icon-left" />
-                        <h3 class="post-title">
-                          <a
-                            href={`/posts/${post.slug}`}
-                            class="post-title-link"
-                          >
-                            {post.title}
-                          </a>
-                          <div class="title-icon-right" />
-                        </h3>
-                        {post.tags.length > 0 && (
-                          <div class="post-tags">
-                            {post.tags.map((tag: string) => (
-                              <span class="post-tag">{tag}</span>
-                            ))}
-                          </div>
-                        )}
-                        <button
-                          class="post-toggle"
-                          aria-label="Toggle post details"
-                        >
-                          <span class="post-arrow">↓</span>
-                        </button>
-                      </div>
-                      <div class="post-details">
-                        <div class="post-content-wrapper">
-                          <div class="post-excerpt-wrapper">
-                            <p class="post-excerpt">{post.excerpt}</p>
-                            <div class="post-footer">
-                              <a
-                                href={`/posts/${post.slug}`}
-                                class="post-read-more"
-                              >
-                                Read more →
-                              </a>
-                              {/* <span class="post-read-time">
-                                ⏱️ {post.readTime}
-                              </span> */}
+            Object.entries(groupedPosts)
+              .sort(([a], [b]) => b.localeCompare(a)) 
+              .map(([dateKey, datePosts]) => (
+                <div class="date-group" data-date={dateKey}>
+                  <h2 class="date-header">{datePosts[0].dateText}</h2>
+
+                  <div class="date-card">
+                    {datePosts.map((post) => (
+                      <article class="post-item" data-post-id={post.slug}>
+                        <div class="post-summary">
+                          <div class="title-icon-left" />
+                          <h3 class="post-title">
+                            <a href={`/posts/${post.slug}`} class="post-title-link">
+                              {post.title}
+                            </a>
+                            <div class="title-icon-right" />
+                          </h3>
+
+                          {post.tags.length > 0 && (
+                            <div class="post-tags">
+                              {post.tags.map((tag) => (
+                                <span class="post-tag">{tag}</span>
+                              ))}
+                            </div>
+                          )}
+
+                          <button class="post-toggle" aria-label="Toggle post details">
+                            <span class="post-arrow">↓</span>
+                          </button>
+                        </div>
+
+                        <div class="post-details">
+                          <div class="post-content-wrapper">
+                            <div class="post-excerpt-wrapper">
+                              <p class="post-excerpt">{post.excerpt}</p>
+                              <div class="post-footer">
+                                <a href={`/posts/${post.slug}`} class="post-read-more">
+                                  Read more →
+                                </a>
+                              </div>
+                            </div>
+
+                            <div class="post-image-container">
+                              <img src={post.image} alt={post.title} class="post-image" />
                             </div>
                           </div>
-                          <div class="post-image-container">
-                            <img
-                              src={post.image}
-                              alt={post.title}
-                              class="post-image"
-                            />
-                          </div>
                         </div>
-                      </div>
-                    </article>
-                  ))}
+                      </article>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
           }
         </div>
       </div>
@@ -264,48 +251,32 @@ const allTags = Array.from(
 </html>
 
 <script>
-  // Ensure scroll position is at top after DOM loads
   document.addEventListener("DOMContentLoaded", () => {
     window.scrollTo(0, 0);
-    setTimeout(() => {
-      window.scrollTo(0, 0);
-    }, 0);
-  });
-  // Also ensure on page show (handles back/forward navigation)
-  window.addEventListener("pageshow", (event) => {
-    if (event.persisted) {
-      window.scrollTo(0, 0);
-    }
+    setTimeout(() => window.scrollTo(0, 0), 0);
   });
 
-  // Initialize page transition animations
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) window.scrollTo(0, 0);
+  });
+
   document.addEventListener("DOMContentLoaded", () => {
-    // Trigger page content animation
     const pageContent = document.querySelector(".page-content");
     if (pageContent) {
-      requestAnimationFrame(() => {
-        pageContent.classList.add("visible");
-      });
+      requestAnimationFrame(() => pageContent.classList.add("visible"));
     }
 
-    // Trigger header animation
     const header = document.querySelector(".posts-header-animate");
     if (header) {
-      requestAnimationFrame(() => {
-        header.classList.add("visible");
-      });
+      requestAnimationFrame(() => header.classList.add("visible"));
     }
 
-    // Trigger content animations
     const contentElements = document.querySelectorAll(".posts-content-animate");
     contentElements.forEach((element) => {
-      requestAnimationFrame(() => {
-        element.classList.add("visible");
-      });
+      requestAnimationFrame(() => element.classList.add("visible"));
     });
   });
 
-  // Expand/collapse behavior
   const postToggles = document.querySelectorAll(".post-toggle");
   const postSummaries = document.querySelectorAll(".post-summary");
 
@@ -317,40 +288,28 @@ const allTags = Array.from(
         postItem.classList.toggle("expanded");
         const arrow = toggle.querySelector(".post-arrow");
         if (arrow) {
-          arrow.textContent = postItem.classList.contains("expanded")
-            ? "↑"
-            : "↓";
+          arrow.textContent = postItem.classList.contains("expanded") ? "↑" : "↓";
         }
       }
     });
   });
 
-  // Click row to expand/collapse
   postSummaries.forEach((summary) => {
     summary.addEventListener("click", (e) => {
-      // Ignore clicks on the title link
-      if ((e.target as HTMLElement).closest(".post-title-link")) {
-        return;
-      }
-      // Ignore clicks on the toggle button
-      if ((e.target as HTMLElement).closest(".post-toggle")) {
-        return;
-      }
+      if ((e.target as HTMLElement).closest(".post-title-link")) return;
+      if ((e.target as HTMLElement).closest(".post-toggle")) return;
 
       const postItem = summary.closest(".post-item");
       if (postItem) {
         postItem.classList.toggle("expanded");
         const arrow = postItem.querySelector(".post-arrow");
         if (arrow) {
-          arrow.textContent = postItem.classList.contains("expanded")
-            ? "↑"
-            : "↓";
+          arrow.textContent = postItem.classList.contains("expanded") ? "↑" : "↓";
         }
       }
     });
   });
 
-  // Search filter
   const searchInput = document.getElementById("search-input");
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
@@ -363,41 +322,32 @@ const allTags = Array.from(
         const excerpt =
           item.querySelector(".post-excerpt")?.textContent?.toLowerCase() || "";
 
-        if (title.includes(searchTerm) || excerpt.includes(searchTerm)) {
-          (item as HTMLElement).style.display = "block";
-        } else {
-          (item as HTMLElement).style.display = "none";
-        }
+        (item as HTMLElement).style.display =
+          title.includes(searchTerm) || excerpt.includes(searchTerm) ? "block" : "none";
       });
 
-      // Update date group visibility
       const dateGroups = document.querySelectorAll(".date-group");
       dateGroups.forEach((dateGroup) => {
         const visibleItems = dateGroup.querySelectorAll(
           '.post-item[style*="block"], .post-item:not([style*="none"])'
         );
-        (dateGroup as HTMLElement).style.display =
-          visibleItems.length > 0 ? "block" : "none";
+        (dateGroup as HTMLElement).style.display = visibleItems.length > 0 ? "block" : "none";
       });
     });
   }
 
-  // Tag filtering (multi-select)
   const tagButtons = document.querySelectorAll(".tag-button");
   const dateGroups = document.querySelectorAll(".date-group");
 
   function applyFilters() {
-    // Collect active tags
     const activeTags = Array.from(tagButtons)
       .filter((btn) => btn.classList.contains("active"))
       .map((btn) => btn.getAttribute("data-tag"))
       .filter((tag): tag is string => tag !== null);
 
-    // If no active tags, show everything
     if (activeTags.length === 0) {
       dateGroups.forEach((dateGroup) => {
-        const postItems = dateGroup.querySelectorAll(".post-item");
-        postItems.forEach((item) => {
+        dateGroup.querySelectorAll(".post-item").forEach((item) => {
           (item as HTMLElement).style.display = "block";
         });
         (dateGroup as HTMLElement).style.display = "block";
@@ -405,7 +355,6 @@ const allTags = Array.from(
       return;
     }
 
-    // Filter posts: show those matching any active tag
     dateGroups.forEach((dateGroup) => {
       const postItems = dateGroup.querySelectorAll(".post-item");
       let hasVisiblePosts = false;
@@ -415,32 +364,19 @@ const allTags = Array.from(
           (tag) => tag.textContent?.toLowerCase().replace(/\s+/g, "-") || ""
         );
 
-        // Check if post has any active tag
-        const hasMatchingTag = activeTags.some((activeTag) =>
-          postTags.includes(activeTag)
-        );
+        const hasMatchingTag = activeTags.some((activeTag) => postTags.includes(activeTag));
 
-        if (hasMatchingTag) {
-          (item as HTMLElement).style.display = "block";
-          hasVisiblePosts = true;
-        } else {
-          (item as HTMLElement).style.display = "none";
-        }
+        (item as HTMLElement).style.display = hasMatchingTag ? "block" : "none";
+        if (hasMatchingTag) hasVisiblePosts = true;
       });
 
-      // Hide date group when no visible posts
-      (dateGroup as HTMLElement).style.display = hasVisiblePosts
-        ? "block"
-        : "none";
+      (dateGroup as HTMLElement).style.display = hasVisiblePosts ? "block" : "none";
     });
   }
 
   tagButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      // Toggle active state
       button.classList.toggle("active");
-
-      // Apply filters
       applyFilters();
     });
   });
