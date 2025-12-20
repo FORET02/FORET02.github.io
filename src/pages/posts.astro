@@ -15,7 +15,7 @@ const allPosts = (await getCollection("posts")) as CollectionEntry<"posts">[];
 function formatDate(dateString: string): string {
   const [month, day, year] = dateString.split("/");
   const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -87,7 +87,7 @@ const posts = await Promise.all(
       title: post.data.title,
       tags: post.data.tags || [],
       excerpt: excerpt,
-      readTime: post.data.readTime || "5 min read",
+      //readTime: post.data.readTime || "5 min read",
       slug: slug,
       image: image,
     };
@@ -120,10 +120,10 @@ const allTags = Array.from(
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
-    <title>Blog Posts - Astro Blog</title>
+    <title>Blog Posts - Foret Blog</title>
     <script>
       // Disable browser scroll restoration and ensure page starts at top
       if ("scrollRestoration" in history) {
@@ -235,9 +235,9 @@ const allTags = Array.from(
                               >
                                 Read more →
                               </a>
-                              <span class="post-read-time">
+                              {/* <span class="post-read-time">
                                 ⏱️ {post.readTime}
-                              </span>
+                              </span> */}
                             </div>
                           </div>
                           <div class="post-image-container">

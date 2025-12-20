@@ -1,8 +1,8 @@
 // Site-wide configuration
 export const siteConfig = {
   // Site metadata
-  name: "Astro Blog",
-  title: "Astro Blog",
+  name: "Foret Blog",
+  title: "Foret Blog",
   description: "A modern blog built with Astro",
   
   // Navigation
@@ -16,25 +16,25 @@ export const siteConfig = {
   // Hero Section
   hero: {
     prefix: "I am",
-    name: "Someone Name",
-    intro: "I am a web developer and blogger, passionate about sharing knowledge and building cool things with code.\nWelcome to my portfolio blog!",
-    avatar: "/image/20943608.jpeg",
+    name: "FORET",
+    intro: "Foret's Blog",
+    avatar: "/image/pettydust.jpg",
     buttons: {
       viewPosts: "View Posts",
       contactMe: "Contact Me",
     },
     socialLinks: [
-      { name: "Twitter", icon: "/svg/twitter.svg", url: "https://x.com/astrodotbuild" },
-      { name: "LinkedIn", icon: "/svg/linkedin.svg", url: "https://www.linkedin.com/company/astrodotbuild" },
-      { name: "Facebook", icon: "/svg/facebook.svg", url: "https://www.facebook.com/astrodotbuild" },
-      { name: "GitHub", icon: "/svg/github.svg", url: "https://github.com/tomcomtang/astro-cartoon-portfolio" },
+      { name: "Twitter", icon: "/svg/twitter.svg", url: "https://github.com/FORET02" },
+      { name: "LinkedIn", icon: "/svg/linkedin.svg", url: "https://github.com/FORET02" },
+      { name: "Facebook", icon: "/svg/facebook.svg", url: "https://github.com/FORET02" },
+      { name: "GitHub", icon: "/svg/github.svg", url: "https://github.com/FORET02" },
     ],
   },
   
   // About Section
   about: {
     title: "About Me",
-    text: "Hi, I'm Someone, a passionate web developer and blogger. I love exploring new technologies and sharing knowledge with the community. On this blog, you'll find my thoughts on web development, tutorials, and project showcases. I hope my content can inspire others in their coding journey.",
+    text: "취업 준비하면서, 블로그에 기록하고 있어요.",
   },
   
   // Contact Page
@@ -44,26 +44,21 @@ export const siteConfig = {
     info: {
       email: {
         label: "Email",
-        value: "tom@example.com",
-        link: "mailto:tom@example.com",
-      },
-      phone: {
-        label: "Phone",
-        value: "+1 (234) 567-890",
-        link: "tel:+1 (234) 567-890",
+        value: "doeun1101@gmail.com",
+        link: "doeun1101@gmail.com",
       },
       location: {
         label: "Location",
-        value: "San Francisco, CA",
+        value: "Seoul, South Korea",
       },
     },
     followMe: {
       title: "Follow Me",
       links: [
-        { name: "Twitter", icon: "/svg/twitter.svg", url: "https://x.com/astrodotbuild" },
-        { name: "LinkedIn", icon: "/svg/linkedin.svg", url: "https://www.linkedin.com/company/astrodotbuild" },
-        { name: "Facebook", icon: "/svg/facebook.svg", url: "https://www.facebook.com/astrodotbuild" },
-        { name: "GitHub", icon: "/svg/github.svg", url: "https://github.com/tomcomtang/astro-cartoon-portfolio" },
+        { name: "Twitter", icon: "/svg/twitter.svg", url: "https://github.com/FORET02" },
+        { name: "LinkedIn", icon: "/svg/linkedin.svg", url: "https://github.com/FORET02" },
+        { name: "Facebook", icon: "/svg/facebook.svg", url: "https://github.com/FORET02" },
+        { name: "GitHub", icon: "/svg/github.svg", url: "https://github.com/FORET02" },
       ],
     },
     footerText: [
@@ -90,7 +85,7 @@ export const siteConfig = {
   // Posts Page
   posts: {
     title: "Blog Posts",
-    subtitle: "Explore our latest articles on web development, design, and technology",
+    subtitle: "키워드를 검색하면, 내용을 볼 수 있어요",
     searchPlaceholder: "Search posts...",
   },
   

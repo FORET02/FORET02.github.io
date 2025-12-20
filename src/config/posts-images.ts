@@ -12,5 +12,5 @@ export const postImages: Record<string, string> = {
 };
 
 // Default image for posts without specific image
-export const defaultPostImage = "/images/posts/craft-1141796_640.png";
+export const defaultPostImage = "/image/pettydust.jpg";
 
