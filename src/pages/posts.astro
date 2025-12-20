@@ -6,7 +6,7 @@ import "../styles/page-transitions.css";
 import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
 import { siteConfig } from "../config/site";
-import { postImages, defaultPostImage } from "../config/posts-images";
+import { postImages } from "../config/posts-images";
 
 // Get all posts from content collection
 const allPosts = (await getCollection("posts")) as CollectionEntry<"posts">[];
@@ -59,14 +59,14 @@ function extractExcerptFromMarkdown(content: string, maxLength: number = 300): s
 
 type PostItem = {
   id: string;
-  date: Date;       
-  dateKey: string;  
-  dateText: string;  
+  date: Date;
+  dateKey: string;
+  dateText: string;
   title: string;
   tags: string[];
   excerpt: string;
   slug: string;
-  image: string | null; // ✅ 수정: string -> string | null
+  image: string | null;
 };
 
 // Transform content collection posts to match the expected format
@@ -85,18 +85,22 @@ const posts: PostItem[] = await Promise.all(
       excerpt = `Read more about ${post.data.title}...`;
     }
 
-    // ✅ 수정: 이미지 결정 로직(의도적 제거 vs 미지정 구분)
+    // ✅ 수정: "이미지 필요 시에만 노출" 정책 (default 이미지 없음)
     const hasImageKey = Object.prototype.hasOwnProperty.call(post.data, "image");
     const fm = post.data.image;
 
     let image: string | null;
 
     if (hasImageKey) {
-      // frontmatter에 image 키가 있으면: 비어 있으면 숨김
+      // frontmatter에 image 키가 있으면:
+      // - 값이 있으면 사용
+      // - 비어 있으면 숨김
       image = typeof fm === "string" && fm.trim().length > 0 ? fm : null;
     } else {
-      // frontmatter에 image 키가 없으면: 매핑 → 없으면 default
-      image = slug in postImages ? postImages[slug] : defaultPostImage;
+      // frontmatter에 image 키가 없으면:
+      // - slug 매핑이 있으면 사용
+      // - 없으면 숨김 (default 없음)
+      image = slug in postImages ? postImages[slug] : null;
     }
 
     const postDate: Date =
@@ -202,7 +206,7 @@ const allTags = Array.from(new Set(posts.flatMap((post) => post.tags))).sort();
         <div class="posts-list posts-content-animate">
           {
             Object.entries(groupedPosts)
-              .sort(([a], [b]) => b.localeCompare(a)) 
+              .sort(([a], [b]) => b.localeCompare(a))
               .map(([dateKey, datePosts]) => (
                 <div class="date-group" data-date={dateKey}>
                   <h2 class="date-header">{datePosts[0].dateText}</h2>
@@ -244,7 +248,6 @@ const allTags = Array.from(new Set(posts.flatMap((post) => post.tags))).sort();
                             </div>
 
                             <div class="post-image-container">
-                              {/* ✅ 수정: image가 있을 때만 렌더링 */}
                               {post.image && (
                                 <img src={post.image} alt={post.title} class="post-image" />
                               )}
