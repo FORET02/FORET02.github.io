@@ -258,7 +258,6 @@ const allTags = Array.from(new Set(posts.flatMap((post) => post.tags))).sort();
       contentElements.forEach((el) => requestAnimationFrame(() => el.classList.add("visible")));
     });
 
-    // Toggle expand/collapse
     const postToggles = document.querySelectorAll(".post-toggle");
     const postSummaries = document.querySelectorAll(".post-summary");
 
@@ -283,7 +282,6 @@ const allTags = Array.from(new Set(posts.flatMap((post) => post.tags))).sort();
       summary.addEventListener("click", (e) => {
         const target = e.target;
 
-        // title 링크 클릭은 토글로 취급하지 않음
         if (target && target.closest && target.closest(".post-title-link")) return;
         if (target && target.closest && target.closest(".post-toggle")) return;
 
@@ -324,11 +322,34 @@ const allTags = Array.from(new Set(posts.flatMap((post) => post.tags))).sort();
     const tagButtons = document.querySelectorAll(".tag-button");
     const dateGroups = document.querySelectorAll(".date-group");
 
+    function normalizeTagValue(v) {
+      return String(v || "").toLowerCase().replace(/\s+/g, "-");
+    }
+
+    function syncUrl(activeTags) {
+      const url = new URL(window.location.href);
+
+      if (!activeTags || activeTags.length === 0) {
+        url.searchParams.delete("tag");
+        url.searchParams.delete("tags");
+      } else if (activeTags.length === 1) {
+        url.searchParams.set("tag", activeTags[0]);
+        url.searchParams.delete("tags");
+      } else {
+        url.searchParams.set("tags", activeTags.join(","));
+        url.searchParams.delete("tag");
+      }
+
+      history.replaceState({}, "", url);
+    }
+
     function applyFilters() {
       const activeTags = Array.from(tagButtons)
         .filter((btn) => btn.classList.contains("active"))
         .map((btn) => btn.getAttribute("data-tag"))
         .filter((t) => t !== null);
+
+      syncUrl(activeTags);
 
       if (activeTags.length === 0) {
         dateGroups.forEach((group) => {
@@ -362,5 +383,34 @@ const allTags = Array.from(new Set(posts.flatMap((post) => post.tags))).sort();
         applyFilters();
       });
     });
+
+    function applyInitialTagsFromUrl() {
+      const url = new URL(window.location.href);
+
+      const single = url.searchParams.get("tag");
+      const multi = url.searchParams.get("tags");
+
+      const initialTags = new Set();
+
+      if (single) initialTags.add(normalizeTagValue(single));
+      if (multi) {
+        multi
+          .split(",")
+          .map((t) => normalizeTagValue(t.trim()))
+          .filter(Boolean)
+          .forEach((t) => initialTags.add(t));
+      }
+
+      if (initialTags.size === 0) return;
+
+      tagButtons.forEach((btn) => {
+        const t = btn.getAttribute("data-tag");
+        if (t && initialTags.has(t)) btn.classList.add("active");
+      });
+
+      applyFilters();
+    }
+
+    applyInitialTagsFromUrl();
   </script>
 </BaseLayout>
