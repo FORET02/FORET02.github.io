@@ -1,0 +1,320 @@
+/* =========================================================
+   theme.css
+   - Light 모드는 기존(home.css/posts.css/...) 디자인을 최대한 유지
+   - Dark 모드에서만 필요한 요소들을 "최소 오버라이드"로 덮어씀
+   - Navigation 토글에서 사용하는 CSS 토큰(--bg/--surface/--border/--text) 제공
+   ========================================================= */
+
+/* =========================================================
+   Design tokens
+   - Light 기본값(기존 디자인과 최대한 동일)
+   - Dark는 html[data-theme="dark"]에서 토큰만 교체
+   ========================================================= */
+:root {
+  /* Core */
+  --bg: #fafdff; /* body 기본 배경 */
+  --text: #333;
+  --text-muted: #666;
+
+  /* Surfaces / Borders */
+  --surface: #ffffff; /* 카드/박스 배경 */
+  --surface-2: rgba(250, 253, 255, 0.95); /* nav 같은 반투명 표면 */
+  --surface-soft: #f7fafc; /* hover/필/보조 배경 */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.12);
+
+  /* Accents */
+  --accent: rgba(154, 230, 180, 0.9);
+
+  /* Shadows */
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* ✅ 토큰이 실제로 적용되도록(라이트에서도 “기본값”만 세팅, 기존 디자인을 깨지 않게 !important 없음) */
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* =========================================================
+   선택: 다른 곳에서 .theme-toggle 클래스를 쓸 경우 대비
+   ========================================================= */
+.theme-toggle,
+button.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0;
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* =========================================================
+   Dark mode core
+   ========================================================= */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Dark tokens override */
+  --bg: #0b0f14;
+  --text: rgba(229, 231, 235, 0.9);
+  --text-muted: rgba(229, 231, 235, 0.72);
+
+  --surface: #121826;
+  --surface-2: rgba(11, 15, 20, 0.72);
+  --surface-soft: rgba(15, 23, 42, 0.9);
+
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  --accent: rgba(154, 230, 180, 0.9);
+
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* 페이지별 배경(베이지/화이트 고정)을 다크에서 투명 처리 */
+html[data-theme="dark"] .posts-page,
+html[data-theme="dark"] .post-detail-page,
+html[data-theme="dark"] .contact-page,
+html[data-theme="dark"] .comments-page {
+  background: transparent !important;
+}
+
+/* =========================================================
+   Nav
+   ========================================================= */
+html[data-theme="dark"] nav {
+  background: var(--surface-2) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+html[data-theme="dark"] .site-name,
+html[data-theme="dark"] .menu-link {
+  color: var(--text) !important;
+}
+
+/* =========================================================
+   Home (index)
+   ========================================================= */
+html[data-theme="dark"] body > section {
+  background: transparent !important;
+}
+
+html[data-theme="dark"] .hero-section,
+html[data-theme="dark"] .about-section {
+  background: transparent !important;
+}
+
+html[data-theme="dark"] .hero-section :is(h1, h2, h3, p, span),
+html[data-theme="dark"] .about-section :is(h1, h2, h3, p, span) {
+  color: var(--text) !important;
+}
+
+/* =========================================================
+   Common containers
+   ========================================================= */
+html[data-theme="dark"] .posts-container,
+html[data-theme="dark"] .post-detail-container,
+html[data-theme="dark"] .contact-page-container,
+html[data-theme="dark"] .comments-page-container {
+  background: transparent !important;
+}
+
+/* =========================================================
+   Card / Box surfaces
+   ========================================================= */
+html[data-theme="dark"] .date-card,
+html[data-theme="dark"] .post-item,
+html[data-theme="dark"] .post-header-card,
+html[data-theme="dark"] .contact-card,
+html[data-theme="dark"] .guidelines-section,
+html[data-theme="dark"] .comments-section {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Posts 리스트에서 "상단 하얀 바"처럼 남는 영역 */
+html[data-theme="dark"] .post-summary {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+/* Posts 텍스트 대비 */
+html[data-theme="dark"] .post-title,
+html[data-theme="dark"] .post-title-link,
+html[data-theme="dark"] .post-title a,
+html[data-theme="dark"] .post-excerpt,
+html[data-theme="dark"] .post-read-more,
+html[data-theme="dark"] .posts-subtitle {
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] .post-read-time {
+  color: var(--text-muted) !important;
+}
+
+/* 태그 pill */
+html[data-theme="dark"] .post-tag,
+html[data-theme="dark"] .tag-button {
+  background: var(--surface-soft) !important;
+  border: 1px solid var(--border-strong) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] .tag-button:hover {
+  filter: brightness(1.05);
+}
+
+/* tag filter active */
+html[data-theme="dark"] .tag-button.active {
+  background: rgba(18, 24, 38, 0.95) !important;
+  border-color: rgba(154, 230, 180, 0.5) !important;
+}
+
+/* 화살표/토글 버튼 */
+html[data-theme="dark"] .post-toggle,
+html[data-theme="dark"] .post-arrow {
+  color: var(--accent) !important;
+}
+
+/* 검색 input / 아이콘 */
+html[data-theme="dark"] .search-input {
+  background: var(--surface-soft) !important;
+  border-color: var(--border-strong) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] .search-input::placeholder {
+  color: rgba(229, 231, 235, 0.55) !important;
+}
+
+html[data-theme="dark"] .search-icon {
+  color: rgba(229, 231, 235, 0.55) !important;
+}
+
+/* 날짜 헤더/라벨 */
+html[data-theme="dark"] .date-header,
+html[data-theme="dark"] .tags-label,
+html[data-theme="dark"] .contact-subtitle,
+html[data-theme="dark"] .comments-subtitle {
+  color: var(--text-muted) !important;
+}
+
+/* =========================================================
+   Post detail ([slug])
+   - post-detail.css의 !important를 이기도록 더 높은 specificity로 다크에서 재정의
+   ========================================================= */
+html[data-theme="dark"] .post-content,
+html[data-theme="dark"] .post-content-animate {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+
+/* set:html 래퍼 */
+html[data-theme="dark"] .post-content > div,
+html[data-theme="dark"] .post-content article,
+html[data-theme="dark"] .post-content section {
+  background: transparent !important;
+}
+
+/* 헤더/메타 텍스트 */
+html[data-theme="dark"] .post-detail-author {
+  color: var(--text) !important;
+}
+html[data-theme="dark"] .post-detail-date,
+html[data-theme="dark"] .post-detail-read-time {
+  color: var(--text-muted) !important;
+}
+
+/* 마크다운 요소 대비 */
+html[data-theme="dark"] .post-content :is(h1, h2, h3, h4, h5, h6, p, li, blockquote, strong, em) {
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] .post-content a {
+  color: rgba(154, 230, 180, 0.95) !important;
+}
+
+/* ✅ 코드블록(pre) / 인라인 code가 라이트 톤으로 남는 문제 해결 */
+html[data-theme="dark"] .post-detail-page .post-content :is(pre, pre.astro-code, pre[class*="astro-code"]) {
+  background: var(--surface-soft) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] .post-detail-page .post-content :is(pre, pre.astro-code, pre[class*="astro-code"]) code {
+  color: var(--text) !important;
+}
+
+html[data-theme="dark"] .post-detail-page .post-content :is(pre, pre.astro-code, pre[class*="astro-code"]) code span {
+  color: var(--text) !important;
+}
+
+/* 인라인 code */
+html[data-theme="dark"] .post-detail-page .post-content :is(code, kbd, samp, tt) {
+  background: rgba(15, 23, 42, 0.75) !important;
+  border: 1px solid var(--border) !important;
+  color: rgba(229, 231, 235, 0.92) !important;
+}
+
+/* blockquote / hr */
+html[data-theme="dark"] .post-detail-page .post-content blockquote {
+  border-left-color: rgba(154, 230, 180, 0.65) !important;
+  color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .post-detail-page .post-content hr {
+  background: var(--border) !important;
+}
+
+/* =========================================================
+   Contact / Comments text 대비
+   ========================================================= */
+html[data-theme="dark"] .contact-card-title,
+html[data-theme="dark"] .contact-card-subtitle,
+html[data-theme="dark"] .contact-info-label,
+html[data-theme="dark"] .contact-info-value,
+html[data-theme="dark"] .guidelines-title,
+html[data-theme="dark"] .guideline-item,
+html[data-theme="dark"] .comments-title {
+  color: var(--text) !important;
+}
+
+/* Giscus wrapper가 다크에서 튀지 않게(카드 내부 자연스럽게) */
+html[data-theme="dark"] #giscus-container {
+  color: var(--text) !important;
+}
+
+/* =========================================================
+   Footer
+   ========================================================= */
+html[data-theme="dark"] footer {
+  background: rgba(18, 24, 38, 0.6) !important;
+  border-top: 1px solid var(--border) !important;
+}
+
+html[data-theme="dark"] .footer-text,
+html[data-theme="dark"] .footer-link,
+html[data-theme="dark"] .footer-github {
+  color: rgba(229, 231, 235, 0.8) !important;
+}

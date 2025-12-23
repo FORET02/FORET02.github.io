@@ -4,11 +4,11 @@
   --post-h2-margin-top: 3rem;
   --post-h2-margin-bottom: 1.17rem;
   --post-h2-content-margin-top: 1.17rem;
-  
+
   --post-h3-margin-top: 2.5rem;
   --post-h3-margin-bottom: 1rem;
   --post-h3-content-margin-top: 1rem;
-  
+
   --post-h4-margin-top: 2rem;
   --post-h4-margin-bottom: 0.83rem;
   --post-h4-content-margin-top: 0.83rem;
@@ -18,7 +18,9 @@
   min-height: 100vh;
   padding-top: 160px;
   padding-bottom: 4rem;
-  background: #fafdff;
+
+  /* ✅ 배경 테마 대응 */
+  background: var(--bg, #fafdff);
 }
 
 .post-detail-container {
@@ -29,12 +31,17 @@
 }
 
 .post-header-card {
-  background: white;
+  /* ✅ 카드 배경/보더/텍스트 테마 대응 */
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e9ecef);
+
   border-radius: 20px;
   padding: 2.5rem 2rem;
   margin-bottom: 2.5rem;
+
+  /* ✅ 다크에서 과한 번짐 방지(형태 유지) */
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e9ecef;
+
   width: 100%;
   box-sizing: border-box;
 }
@@ -118,24 +125,36 @@
 .post-detail-author {
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+
+  /* ✅ #333 → 테마 텍스트 */
+  color: var(--text, #333);
+
   line-height: 1.2;
 }
 
 .post-detail-date,
 .post-detail-read-time {
   font-size: 0.9rem;
-  color: #666;
+
+  /* ✅ #666 → 테마 텍스트 기반 */
+  color: color-mix(in srgb, var(--text, #333) 65%, transparent);
+
   line-height: 1.2;
 }
 
 /* Post content container */
 .post-detail-page .post-content {
-  background: white;
+  /* ✅ 본문 카드 배경/보더/텍스트 테마 대응 */
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e9ecef);
+  color: var(--text, #333);
+
   border-radius: 20px;
   padding: 2.5rem 2rem;
+
+  /* ✅ 다크에서 과한 번짐 방지(형태 유지) */
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e9ecef;
+
   width: 100%;
   box-sizing: border-box;
   text-align: left !important;
@@ -147,6 +166,9 @@
   text-align: left !important;
   margin-top: 0 !important;
   margin-bottom: 2rem !important;
+
+  /* ✅ 문단 텍스트 테마 대응 */
+  color: var(--text, #333) !important;
 }
 
 .post-detail-page .post-content :global(h2),
@@ -157,7 +179,10 @@
   margin-bottom: 3.5rem !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
-  color: #333 !important;
+
+  /* ✅ #333 → 테마 텍스트 */
+  color: var(--text, #333) !important;
+
   line-height: 1.3 !important;
   text-align: left !important;
   display: block !important;
@@ -182,7 +207,10 @@
   margin-bottom: 3rem !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
-  color: #333 !important;
+
+  /* ✅ #333 → 테마 텍스트 */
+  color: var(--text, #333) !important;
+
   line-height: 1.3 !important;
   text-align: left !important;
   display: block !important;
@@ -202,7 +230,10 @@
   margin-bottom: 2.5rem !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
-  color: #333 !important;
+
+  /* ✅ #333 → 테마 텍스트 */
+  color: var(--text, #333) !important;
+
   line-height: 1.3 !important;
   text-align: left !important;
   display: block !important;
@@ -219,6 +250,9 @@
 .post-detail-page .post-content :global(ol) {
   margin-top: var(--space-4, 24px) !important;
   text-align: left !important;
+
+  /* ✅ 리스트 텍스트 테마 대응 */
+  color: var(--text, #333) !important;
 }
 
 .post-detail-page .post-content :global(ul:first-child),
@@ -229,11 +263,16 @@
 .post-detail-page .post-content :global(li) {
   margin-bottom: calc(var(--space-4, 24px) / 2) !important;
   text-align: left !important;
+
+  /* ✅ 리스트 텍스트 테마 대응 */
+  color: var(--text, #333) !important;
 }
 
 .post-detail-page .post-content :global(li) :global(strong) {
   font-weight: 700;
-  color: #333;
+
+  /* ✅ #333 → 테마 텍스트 */
+  color: var(--text, #333);
 }
 
 .post-detail-page .post-content :global(li) :global(p) {
@@ -262,14 +301,17 @@
   font-weight: 700;
 }
 
+/* Inline code */
 .post-detail-page .post-content :global(code),
 .post-detail-page .post-content :global(kbd),
 .post-detail-page .post-content :global(samp),
 .post-detail-page .post-content :global(tt) {
-  background-color: #fff4db;
+  /* ✅ 인라인 코드: 라이트는 기존 느낌 유지, 다크는 surface 기반으로 */
+  background-color: color-mix(in srgb, var(--surface, #fff) 80%, #fff4db 20%);
   border-radius: 4px;
-  color: #8a6534;
-  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  color: color-mix(in srgb, var(--text, #333) 80%, #8a6534 20%);
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 0.875em;
   padding: 0.2em 0.4em;
   word-break: normal;
@@ -288,7 +330,10 @@
 .post-detail-page .post-content :global(pre.astro-code),
 .post-detail-page .post-content :global(pre[class*="astro-code"]),
 .post-detail-page .post-content :global(pre[style*="background-color"]) {
-  background: #f5f5f5 !important;
+  /* ✅ 코드블록 배경/보더/텍스트 테마 대응 */
+  background: color-mix(in srgb, var(--surface, #fff) 92%, var(--text, #333) 8%) !important;
+  border: 1px solid var(--border, #e9ecef) !important;
+
   border-radius: 8px !important;
   font-size: 0.875rem !important;
   line-height: 1.5 !important;
@@ -303,7 +348,10 @@
 .post-detail-page .post-content :global(pre[class*="astro-code"]) :global(code),
 .post-detail-page .post-content :global(pre[style*="background-color"]) :global(code) {
   background: transparent !important;
-  color: #333 !important;
+
+  /* ✅ 코드 텍스트 테마 대응 */
+  color: var(--text, #333) !important;
+
   padding: 0 !important;
   font-size: inherit !important;
 }
@@ -311,12 +359,13 @@
 .post-detail-page .post-content :global(pre) :global(code) :global(span),
 .post-detail-page .post-content :global(pre.astro-code) :global(code) :global(span),
 .post-detail-page .post-content :global(pre[class*="astro-code"]) :global(code) :global(span) {
-  color: #333 !important;
+  /* ✅ 하이라이트 span이 하얀/검은 고정되지 않게 */
+  color: var(--text, #333) !important;
 }
 
 .post-detail-page .post-content :global(pre) :global(code) :global(span[style]),
 .post-detail-page .post-content :global(pre.astro-code) :global(code) :global(span[style]) {
-  color: #333 !important;
+  color: var(--text, #333) !important;
 }
 
 .post-detail-page .post-content :global(pre) :global(code:after),
@@ -330,7 +379,10 @@
   border-left: 4px solid #76cfc5;
   padding-left: 1rem;
   margin: 24px 0 !important;
-  color: #666;
+
+  /* ✅ 인용문 텍스트 테마 대응 */
+  color: color-mix(in srgb, var(--text, #333) 65%, transparent);
+
   font-style: italic;
   text-align: left !important;
 }
@@ -340,7 +392,9 @@
 }
 
 .post-detail-page .post-content :global(hr) {
-  background: rgba(0, 0, 0, 0.2);
+  /* ✅ 구분선 테마 대응 */
+  background: color-mix(in srgb, var(--text, #333) 20%, transparent);
+
   border: none;
   box-sizing: content-box;
   height: 1px;
@@ -359,7 +413,10 @@
 
 .post-detail-page .post-content :global(a) {
   background-color: transparent;
-  color: #7026b9;
+
+  /* ✅ 링크: 기존 보라색 유지하되 다크에서 너무 튀면 text 기반으로 살짝 섞임 */
+  color: color-mix(in srgb, #7026b9 75%, var(--text, #333) 25%);
+
   font-weight: 500;
   text-decoration: none;
   text-decoration: underline;
@@ -375,10 +432,15 @@
 
 /* Code Example Block */
 .post-detail-page .post-content :global(.code-example) {
-  background: rgba(0, 0, 0, 0.04);
+  /* ✅ 코드 예시 박스 테마 대응 */
+  background: color-mix(in srgb, var(--surface, #fff) 92%, var(--text, #333) 8%);
+
   border-radius: 8px;
   padding: 1.5rem;
   margin: 1.5rem 0;
+
+  /* ✅ 경계가 필요하면 테두리도 토큰으로 */
+  border: 1px solid var(--border, #e9ecef);
 }
 
 .post-detail-page .post-content :global(.code-example) :global(h4) {
@@ -427,4 +489,3 @@
     font-size: 1.25rem;
   }
 }
-

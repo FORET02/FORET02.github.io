@@ -1,5 +1,4 @@
 ---
-import { Astro } from "astro";
 import { siteConfig } from "../config/site";
 
 const currentPath = Astro.url.pathname;
@@ -34,5 +33,182 @@ const currentPath = Astro.url.pathname;
         >{siteConfig.navigation.comments}</a
       >
     </li>
+
+    <!-- ✅ Theme Switch -->
+    <li class="theme-switch-item">
+      <button
+        type="button"
+        class="theme-switch"
+        data-theme-toggle
+        role="switch"
+        aria-checked="false"
+        aria-label="Switch to dark mode"
+        title="Switch theme"
+      >
+        <span class="theme-switch__thumb" aria-hidden="true">
+          <!-- 라이트 상태: 달 아이콘(다크로 전환 의미) -->
+          <svg
+            class="theme-switch__icon theme-switch__icon--moon"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+          </svg>
+
+          <!-- 다크 상태: 해 아이콘(라이트로 전환 의미) -->
+          <svg
+            class="theme-switch__icon theme-switch__icon--sun"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="M4.93 4.93l1.41 1.41"></path>
+            <path d="M17.66 17.66l1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="M4.93 19.07l1.41-1.41"></path>
+            <path d="M17.66 6.34l1.41-1.41"></path>
+          </svg>
+        </span>
+      </button>
+    </li>
   </ul>
 </nav>
+
+<style>
+  /* 기존 네비 디자인을 건드리지 않기 위해, 토글 자체만 "자체 스타일"로 처리 */
+
+  .theme-switch-item {
+    display: flex;
+    align-items: center;
+  }
+
+  .theme-switch {
+    width: 46px;
+    height: 26px;
+    border-radius: 999px;
+
+    /* ✅ 토큰 없을 때도 깨지지 않게 fallback */
+    background: var(--surface, rgba(255, 255, 255, 0.7));
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+
+    padding: 2px;
+    display: inline-flex;
+    align-items: center;
+
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 썸 */
+  .theme-switch__thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+
+    background: var(--bg, #ffffff);
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--text, #111827);
+
+    transition: transform 180ms ease;
+    will-change: transform;
+  }
+
+  .theme-switch:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
+
+  /* 기본(라이트)에서는 달 표시 */
+  .theme-switch__icon--sun {
+    display: none;
+  }
+
+  /* 다크 상태 */
+  html[data-theme="dark"] .theme-switch__thumb {
+    transform: translateX(20px);
+  }
+  html[data-theme="dark"] .theme-switch__icon--moon {
+    display: none;
+  }
+  html[data-theme="dark"] .theme-switch__icon--sun {
+    display: inline-block;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-switch__thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const STORAGE_KEY = "theme";
+    const root = document.documentElement;
+    const btn = document.querySelector("[data-theme-toggle]");
+
+    const normalize = (v) => (v === "dark" || v === "light" ? v : null);
+    const getTheme = () => normalize(root.dataset.theme) ?? "light";
+
+    const setA11y = (theme) => {
+      if (!btn) return;
+      const next = theme === "dark" ? "light" : "dark";
+      const label =
+        next === "dark" ? "Switch to dark mode" : "Switch to light mode";
+      btn.setAttribute("aria-label", label);
+      btn.setAttribute("title", label);
+      btn.setAttribute("aria-checked", theme === "dark" ? "true" : "false");
+    };
+
+    const apply = (theme, persist) => {
+      root.dataset.theme = theme;
+      root.style.colorScheme = theme;
+      if (persist) localStorage.setItem(STORAGE_KEY, theme);
+      setA11y(theme);
+    };
+
+    // ✅ 초기 상태:
+    // - BaseLayout이 이미 data-theme을 세팅해둔 상태가 "정상"
+    // - 혹시 없으면 localStorage 또는 기본 light로 맞춘다.
+    const existing = normalize(root.dataset.theme);
+    const saved = normalize(localStorage.getItem(STORAGE_KEY));
+    const initial = existing ?? saved ?? "light";
+
+    if (existing !== initial) {
+      apply(initial, false); // 초기에는 저장하지 않음
+    } else {
+      setA11y(initial);
+    }
+
+    // ✅ 클릭 시에만 저장 + 테마 전환
+    btn?.addEventListener("click", () => {
+      const now = getTheme();
+      const next = now === "dark" ? "light" : "dark";
+      apply(next, true);
+    });
+
+    // ✅ 다른 코드가 data-theme을 바꿔도 a11y 상태는 따라가게
+    const observer = new MutationObserver(() => setA11y(getTheme()));
+    observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  })();
+</script>

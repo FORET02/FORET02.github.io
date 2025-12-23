@@ -1,6 +1,7 @@
 /* Posts Page Styles */
 .posts-page {
-  background: #fafdff;
+  /* ✅ 배경 테마 대응 */
+  background: var(--bg, #fafdff);
   min-height: 100vh;
   padding-top: 80px;
   padding-bottom: 4rem;
@@ -35,7 +36,10 @@
 
 .posts-subtitle {
   font-size: 1.1rem;
-  color: #666;
+
+  /* ✅ #666 → 테마 텍스트 기반 */
+  color: color-mix(in srgb, var(--text, #333) 65%, transparent);
+
   margin: 0 auto;
   line-height: 1.6;
   text-align: center !important;
@@ -58,7 +62,12 @@
 .search-input {
   width: 100%;
   padding: 0.75rem 2.5rem 0.75rem 1rem;
-  border: 1px solid #e2e8f0;
+
+  /* ✅ 입력창 배경/보더/텍스트 테마 대응 */
+  background: var(--surface, #fff);
+  color: var(--text, #333);
+  border: 1px solid var(--border, #e2e8f0);
+
   border-radius: 8px;
   font-size: 1rem;
   font-family: var(--font-sans);
@@ -76,7 +85,10 @@
   right: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #a0aec0;
+
+  /* ✅ #a0aec0 → 테마 텍스트 기반 */
+  color: color-mix(in srgb, var(--text, #333) 40%, transparent);
+
   pointer-events: none;
 }
 
@@ -92,7 +104,10 @@
 
 .tags-label {
   font-weight: 600;
-  color: #333;
+
+  /* ✅ #333 → 테마 텍스트 */
+  color: var(--text, #333);
+
   font-size: 1rem;
 }
 
@@ -104,21 +119,25 @@
 
 .tag-button {
   padding: 0.5rem 1rem;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+
+  /* ✅ 버튼 배경/보더/텍스트 테마 대응 */
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  color: color-mix(in srgb, var(--text, #333) 78%, transparent);
+
   border-radius: 20px;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #4a5568;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: var(--font-sans);
 }
 
 .tag-button:hover {
-  background: #f7fafc;
-  border-color: #cbd5e0;
-  color: #2d3748;
+  /* ✅ hover 배경/보더/텍스트 테마 대응 */
+  background: color-mix(in srgb, var(--surface, #fff) 88%, var(--text, #333) 12%);
+  border-color: color-mix(in srgb, var(--border, #e2e8f0) 70%, var(--text, #333) 30%);
+  color: color-mix(in srgb, var(--text, #333) 92%, transparent);
 }
 
 .tag-button.active {
@@ -148,17 +167,24 @@
 }
 
 .date-card {
-  background: #fff;
+  /* ✅ 카드 배경/보더 테마 대응 */
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+
   border-radius: 12px;
   padding: 1.5rem;
+
+  /* ✅ 다크에서 과한 그림자 방지: alpha 낮춤(형태 유지) */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
 }
 
 /* Post Item */
 .post-item {
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+
+  /* ✅ 구분선 테마 대응 */
+  border-bottom: 1px solid var(--border, #e2e8f0);
+
   padding-bottom: 1.5rem;
 }
 
@@ -181,7 +207,8 @@
 }
 
 .post-summary:hover {
-  background-color: #f7fafc;
+  /* ✅ hover 배경 테마 대응 */
+  background-color: color-mix(in srgb, var(--surface, #fff) 88%, var(--text, #333) 12%);
 }
 
 .post-summary:hover .post-title a {
@@ -229,7 +256,9 @@
 }
 
 .post-title-link {
-  color: #2d3748;
+  /* ✅ #2d3748 → 테마 텍스트 */
+  color: var(--text, #2d3748);
+
   text-decoration: none;
   transition: color 0.2s ease;
 }
@@ -248,12 +277,15 @@
 .post-tag {
   display: inline-block;
   padding: 0.2rem 0.6rem;
-  background: #f7fafc;
-  color: #4a5568;
+
+  /* ✅ 태그 배경/텍스트/보더 테마 대응 */
+  background: color-mix(in srgb, var(--surface, #fff) 90%, var(--text, #333) 10%);
+  color: color-mix(in srgb, var(--text, #333) 78%, transparent);
+  border: 1px solid var(--border, #e2e8f0);
+
   border-radius: 12px;
   font-size: 0.8rem;
   font-weight: 500;
-  border: 1px solid #e2e8f0;
 }
 
 .post-toggle {
@@ -317,7 +349,10 @@
 
 .post-excerpt {
   font-size: 1.15rem;
-  color: #4a5568;
+
+  /* ✅ #4a5568 → 테마 텍스트 기반 */
+  color: color-mix(in srgb, var(--text, #333) 78%, transparent);
+
   line-height: 1.7;
   margin: 0;
 }
@@ -369,9 +404,10 @@
 
 .post-read-time {
   font-size: 1rem;
-  color: #718096;
-}
 
+  /* ✅ #718096 → 테마 텍스트 기반 */
+  color: color-mix(in srgb, var(--text, #333) 55%, transparent);
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -429,4 +465,3 @@
     max-width: 100%;
   }
 }
-

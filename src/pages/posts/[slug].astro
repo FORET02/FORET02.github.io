@@ -1,47 +1,81 @@
 ---
-import { getCollection } from "astro:content";
-import { Fragment } from "astro/jsx-runtime";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+import { getCollection, type CollectionEntry } from "astro:content";
 import "../../styles/home.css";
 import "../../styles/post-detail.css";
 import "../../styles/page-transitions.css";
-import Navigation from "../../components/Navigation.astro";
-import Footer from "../../components/Footer.astro";
+import "../../styles/theme.css";
 
-export async function getStaticPaths() {
-  const posts = (await getCollection("posts")) as any[];
+type PostPath = {
+  params: { slug: string };
+  props: { post: any };
+};
+
+export async function getStaticPaths(): Promise<PostPath[]> {
+  const posts = (await getCollection("posts")) as CollectionEntry<"posts">[];
+
   return posts
-    .map((post) => {
-      // Get slug from post - try multiple fallbacks
+    .map((post: any) => {
       let slug = post.slug;
+
       if (!slug && post.id) {
-        // Extract slug from id (e.g., "posts/my-post.md" -> "my-post")
         slug = post.id.split("/").pop()?.replace(/\.md$/, "") || "";
       }
+
       if (!slug) {
         console.warn("Post missing slug in getStaticPaths:", post);
         return null;
       }
+
       return {
         params: { slug },
         props: { post },
       };
     })
-    .filter(Boolean);
+    .filter((v): v is PostPath => v !== null);
 }
 
-interface Props {
-  post: any;
-}
-
-const { post } = Astro.props;
+const { post } = Astro.props as { post: any };
 
 if (!post) {
   throw new Error("Post is undefined");
 }
 
-// Format date to "YYYY년 M월 D일" in Korean locale
+/**
+ * 날짜 파싱을 "항상 동일한 날짜"로 안정화.
+ * - "YYYY-MM-DD" / "YYYY/MM/DD" 같이 날짜만 있는 값은 UTC 기준으로 만들어서
+ *   Asia/Seoul 포맷팅 시 날짜가 틀어지지 않게 처리.
+ */
+function parseDateStable(value: unknown): Date {
+  if (value instanceof Date) return value;
+
+  const s = String(value ?? "").trim();
+  const m = s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+
+  if (m) {
+    const y = Number(m[1]);
+    const mo = Number(m[2]);
+    const d = Number(m[3]);
+
+    if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) {
+      throw new Error(`Invalid date value: ${s}`);
+    }
+
+    // UTC 00:00로 만들면, KST로 포맷해도 "그 날짜"가 유지됨
+    return new Date(Date.UTC(y, mo - 1, d));
+  }
+
+  const dt = new Date(s);
+  if (Number.isNaN(dt.getTime())) {
+    throw new Error(`Invalid date value: ${s}`);
+  }
+  return dt;
+}
+
+// Format date to "YYYY년 M월 D일" in Korean locale (KST)
 function formatDateText(dateValue: unknown): string {
-  const d = dateValue instanceof Date ? dateValue : new Date(String(dateValue));
+  const d = parseDateStable(dateValue);
   return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
     month: "long",
@@ -50,288 +84,94 @@ function formatDateText(dateValue: unknown): string {
   }).format(d);
 }
 
-// With glob loader in Astro 6.0, post has:
-// - post.data: frontmatter (already parsed by schema)
-// - post.body: markdown content (raw string)
-// - post.rendered: pre-rendered content (if available)
-let Content;
+/**
+ * Content resolver (Astro content collection 우선)
+ * - post.render()가 있으면 그걸 사용 (가장 안정적)
+ * - 없으면 post.rendered.Content / post.body fallback
+ */
+let ContentComponent: any = null;
+let ContentHtml = "";
 
-// First, check if post.rendered exists and has Content
-if (
-  post.rendered &&
-  typeof post.rendered === "object" &&
-  post.rendered.Content
-) {
-  Content = post.rendered.Content;
+if (post && typeof post.render === "function") {
+  const rendered = await post.render();
+  ContentComponent = rendered?.Content ?? null;
+} else if (post.rendered && typeof post.rendered === "object" && post.rendered.Content) {
+  ContentComponent = post.rendered.Content;
 } else if (post.body) {
-  // Render markdown using unified/remark
   const { unified } = await import("unified");
   const remarkParse = (await import("remark-parse")).default;
   const remarkRehype = (await import("remark-rehype")).default;
   const rehypeStringify = (await import("rehype-stringify")).default;
 
-  const processor = unified()
-    .use(remarkParse)
-    .use(remarkRehype)
-    .use(rehypeStringify);
-
+  const processor = unified().use(remarkParse).use(remarkRehype).use(rehypeStringify);
   const result = await processor.process(post.body);
-  Content = String(result);
+  ContentHtml = String(result);
 } else {
   throw new Error(
     `Cannot find content in post. Available keys: ${Object.keys(post).join(", ")}`
   );
 }
+
+// ✅ 안전한 데이터 정규화
+const title = String(post.data?.title ?? "Post");
+const pageTitle = `${title} - Foret Blog`;
+
+const author = String(post.data?.author || "Foret");
+const readTime = String(post.data?.readTime || "");
+const avatarSrc = "/image/pettydust.jpg";
+
+const tags: string[] = Array.isArray(post.data?.tags) ? post.data.tags : [];
+const dateValue = post.data?.date;
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <title>{post.data.title} - Foret Blog</title>
-    <script>
-      // Disable browser scroll restoration and ensure page starts at top
-      if ("scrollRestoration" in history) {
-        history.scrollRestoration = "manual";
-      }
-      // Immediately scroll to top on page load
-      window.scrollTo(0, 0);
-    </script>
-  </head>
-  <body>
-    <Navigation />
+<BaseLayout title={pageTitle}>
+  <main class="post-detail-page">
+    <div class="post-detail-container page-content">
+      <div class="post-header-card post-header-animate">
+        <h1 class="post-detail-title">{title}</h1>
 
-    <main class="post-detail-page">
-      <div class="post-detail-container page-content">
-        <div class="post-header-card post-header-animate">
-          <h1 class="post-detail-title">{post.data.title}</h1>
-          {
-            post.data.tags && post.data.tags.length > 0 && (
-              <div class="post-detail-tags">
-                {post.data.tags.map((tag: string) => (
-                  <span class="post-detail-tag">{tag}</span>
-                ))}
-              </div>
-            )
-          }
-          <div class="post-detail-meta">
-            <a href="/posts" class="post-back-button"> ← Back to Posts </a>
-            <div class="post-detail-meta-info">
-              <img
-                src="/image/pettydust.jpg"
-                alt={post.data.author || "Foret"}
-                class="post-detail-avatar"
-              />
-              <span class="post-detail-author"
-                >{post.data.author || "Foret"}</span
-              >
-              <span class="post-detail-date">
-                {formatDateText(post.data.date)}
-              </span>
-              <span class="post-detail-read-time">{post.data.readTime}</span>
-            </div>
+        {tags.length > 0 && (
+          <div class="post-detail-tags">
+            {tags.map((tag: string) => (
+              <span class="post-detail-tag">{tag}</span>
+            ))}
+          </div>
+        )}
+
+        <div class="post-detail-meta">
+          <a href="/posts" class="post-back-button">← Back to Posts</a>
+
+          <div class="post-detail-meta-info">
+            <img
+              src={avatarSrc}
+              alt={author}
+              class="post-detail-avatar"
+              loading="lazy"
+              decoding="async"
+            />
+            <span class="post-detail-author">{author}</span>
+            <span class="post-detail-date">{formatDateText(dateValue)}</span>
+            {readTime && <span class="post-detail-read-time">{readTime}</span>}
           </div>
         </div>
-
-        <div class="post-content post-content-animate">
-          {
-            typeof Content === "function" ? (
-              <Content />
-            ) : (
-              <div set:html={Content} />
-            )
-          }
-        </div>
       </div>
-    </main>
 
-    <Footer />
+      <div class="post-content post-content-animate">
+        {ContentComponent ? <ContentComponent /> : <div set:html={ContentHtml} />}
+      </div>
+    </div>
+  </main>
 
-    <script>
-      // Ensure scroll position is at top after DOM loads
-      document.addEventListener("DOMContentLoaded", () => {
-        window.scrollTo(0, 0);
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-        }, 0);
-      });
-      // Also ensure on page show (handles back/forward navigation)
-      window.addEventListener("pageshow", (event) => {
-        if (event.persisted) {
-          window.scrollTo(0, 0);
-        }
-      });
+  <script is:inline>
+    document.addEventListener("DOMContentLoaded", () => {
+      const pageContent = document.querySelector(".page-content");
+      if (pageContent) requestAnimationFrame(() => pageContent.classList.add("visible"));
 
-      // Initialize page transition animations
-      document.addEventListener("DOMContentLoaded", () => {
-        // Trigger page content animation
-        const pageContent = document.querySelector(".page-content");
-        if (pageContent) {
-          requestAnimationFrame(() => {
-            pageContent.classList.add("visible");
-          });
-        }
+      const header = document.querySelector(".post-header-animate");
+      if (header) requestAnimationFrame(() => header.classList.add("visible"));
 
-        // Trigger header animation
-        const header = document.querySelector(".post-header-animate");
-        if (header) {
-          requestAnimationFrame(() => {
-            header.classList.add("visible");
-          });
-        }
-
-        // Trigger content animation
-        const content = document.querySelector(".post-content-animate");
-        if (content) {
-          requestAnimationFrame(() => {
-            content.classList.add("visible");
-          });
-        }
-
-        // Apply heading spacing using CSS variables - elegant implementation
-        const applyHeadingSpacing = () => {
-          const postContent = document.querySelector(".post-content");
-          if (!postContent) return;
-
-          const rootStyles = getComputedStyle(document.documentElement);
-          const getCSSVar = (name: string, fallback: string) =>
-            rootStyles.getPropertyValue(name).trim() || fallback;
-
-          // Heading configuration - centralized and maintainable
-          const headingConfig = [
-            {
-              selector: "h2",
-              marginTopVar: "--post-h2-margin-top",
-              marginBottomVar: "--post-h2-margin-bottom",
-              contentMarginTopVar: "--post-h2-content-margin-top",
-              defaults: {
-                marginTop: "3rem",
-                marginBottom: "1.17rem",
-                contentMarginTop: "1.17rem",
-              },
-              skipFirstMarginTop: true,
-            },
-            {
-              selector: "h3",
-              marginTopVar: "--post-h3-margin-top",
-              marginBottomVar: "--post-h3-margin-bottom",
-              contentMarginTopVar: "--post-h3-content-margin-top",
-              defaults: {
-                marginTop: "2.5rem",
-                marginBottom: "1rem",
-                contentMarginTop: "1rem",
-              },
-              skipFirstMarginTop: false,
-            },
-            {
-              selector: "h4",
-              marginTopVar: "--post-h4-margin-top",
-              marginBottomVar: "--post-h4-margin-bottom",
-              contentMarginTopVar: "--post-h4-content-margin-top",
-              defaults: {
-                marginTop: "2rem",
-                marginBottom: "0.83rem",
-                contentMarginTop: "0.83rem",
-              },
-              skipFirstMarginTop: false,
-            },
-          ];
-
-          const contentTags = ["P", "UL", "OL", "PRE"];
-
-          // Process each heading type using configuration
-          headingConfig.forEach((config) => {
-            const headings = postContent.querySelectorAll(config.selector);
-            const marginTop = getCSSVar(
-              config.marginTopVar,
-              config.defaults.marginTop
-            );
-            const marginBottom = getCSSVar(
-              config.marginBottomVar,
-              config.defaults.marginBottom
-            );
-            const contentMarginTop = getCSSVar(
-              config.contentMarginTopVar,
-              config.defaults.contentMarginTop
-            );
-
-            headings.forEach((heading) => {
-              if (!(heading instanceof HTMLElement)) return;
-
-              // Apply heading margins
-              if (
-                config.skipFirstMarginTop &&
-                heading.previousElementSibling === null
-              ) {
-                heading.style.marginTop = "0";
-              } else {
-                heading.style.marginTop = marginTop;
-              }
-              heading.style.marginBottom = marginBottom;
-
-              // Apply content spacing after heading
-              const nextElement = heading.nextElementSibling;
-              if (
-                nextElement instanceof HTMLElement &&
-                contentTags.includes(nextElement.tagName)
-              ) {
-                nextElement.style.marginTop = contentMarginTop;
-              }
-            });
-          });
-        };
-
-        // Override code block inline styles - use function to run multiple times
-        const overrideCodeStyles = () => {
-          const codeBlocks = document.querySelectorAll(
-            ".post-content pre, .post-content pre.astro-code"
-          );
-          codeBlocks.forEach((pre) => {
-            if (pre instanceof HTMLElement) {
-              // Remove inline styles first, then set new ones
-              pre.style.removeProperty("background-color");
-              pre.style.removeProperty("color");
-              pre.style.backgroundColor = "#f5f5f5";
-              pre.style.borderRadius = "8px";
-              pre.style.color = "#333";
-
-              // Override code element styles
-              const code = pre.querySelector("code");
-              if (code instanceof HTMLElement) {
-                code.style.removeProperty("background-color");
-                code.style.removeProperty("color");
-                code.style.backgroundColor = "transparent";
-                code.style.color = "#333";
-
-                // Override all span styles inside code
-                const spans = code.querySelectorAll("span");
-                spans.forEach((span) => {
-                  if (span instanceof HTMLElement) {
-                    span.style.removeProperty("color");
-                    span.style.color = "#333";
-                  }
-                });
-              }
-            }
-          });
-        };
-
-        // Run immediately
-        applyHeadingSpacing();
-        overrideCodeStyles();
-
-        // Also run after delays to catch any late-rendered elements
-        setTimeout(() => {
-          applyHeadingSpacing();
-          overrideCodeStyles();
-        }, 100);
-        setTimeout(() => {
-          applyHeadingSpacing();
-          overrideCodeStyles();
-        }, 500);
-      });
-    </script>
-  </body>
-</html>
+      const content = document.querySelector(".post-content-animate");
+      if (content) requestAnimationFrame(() => content.classList.add("visible"));
+    });
+  </script>
+</BaseLayout>

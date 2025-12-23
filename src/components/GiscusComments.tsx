@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import Giscus from '@giscus/react';
+import React, { useEffect, useMemo, useState } from "react";
+import Giscus from "@giscus/react";
 
 interface GiscusCommentsProps {
   repo?: string;
@@ -7,33 +7,86 @@ interface GiscusCommentsProps {
   categoryId?: string;
 }
 
+type ThemeMode = "light" | "dark";
+
+function getThemeMode(): ThemeMode {
+  if (typeof document === "undefined") return "light";
+  const t = document.documentElement?.dataset?.theme;
+  return t === "dark" ? "dark" : "light";
+}
+
+const STORAGE_KEY = "theme";
+
 const GiscusComments: React.FC<GiscusCommentsProps> = ({
   repo,
   repoId,
   categoryId,
 }) => {
-  // Giscus config using provided props or env defaults
-  const giscusConfig = {
-    repo: repo || import.meta.env.PUBLIC_GISCUS_REPO || 'tomcomtang/astro-cartoon-portfolio',
-    repoId: repoId || import.meta.env.PUBLIC_GISCUS_REPO_ID || 'R_kgDOQhFeMw',
-    category: 'General', // fixed
-    categoryId: categoryId || import.meta.env.PUBLIC_GISCUS_CATEGORY_ID || 'DIC_kwDOQhFeM84CzVPU',
-    mapping: 'pathname' as const, // fixed
-    reactionsEnabled: '1' as const, // fixed
-    emitMetadata: '0' as const, // fixed
-    inputPosition: 'bottom' as const, // fixed
-    theme: 'noborder_light' as const, // fixed
-    lang: 'en' as const, // fixed
-    loading: 'lazy' as const, // fixed
-  };
+  const [mode, setMode] = useState<ThemeMode>("light");
 
   useEffect(() => {
-    console.log('GiscusComments component mounted');
+    if (typeof document === "undefined") return;
+
+    const sync = () => {
+      const next = getThemeMode();
+      setMode((prev) => (prev === next ? prev : next));
+    };
+
+    // 초기 동기화
+    sync();
+
+    // data-theme 변경 감지
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    // 다른 탭/창에서 localStorage theme 변경 시 반영
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY) return;
+      sync();
+    };
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
+
+  const giscusKey = useMemo(() => `giscus-${mode}`, [mode]);
+
+  const giscusConfig = useMemo(
+    () => ({
+      repo:
+        repo ||
+        import.meta.env.PUBLIC_GISCUS_REPO ||
+        "tomcomtang/astro-cartoon-portfolio",
+      repoId:
+        repoId ||
+        import.meta.env.PUBLIC_GISCUS_REPO_ID ||
+        "R_kgDOQhFeMw",
+      category: "General",
+      categoryId:
+        categoryId ||
+        import.meta.env.PUBLIC_GISCUS_CATEGORY_ID ||
+        "DIC_kwDOQhFeM84CzVPU",
+      mapping: "pathname" as const,
+      reactionsEnabled: "1" as const,
+      emitMetadata: "0" as const,
+      inputPosition: "bottom" as const,
+      theme: (mode === "dark" ? "noborder_dark" : "noborder_light") as const,
+      lang: "en" as const,
+      loading: "lazy" as const,
+    }),
+    [repo, repoId, categoryId, mode]
+  );
 
   return (
     <div id="giscus-container">
       <Giscus
+        key={giscusKey}
         repo={giscusConfig.repo}
         repoId={giscusConfig.repoId}
         category={giscusConfig.category}
@@ -51,4 +104,3 @@ const GiscusComments: React.FC<GiscusCommentsProps> = ({
 };
 
 export default GiscusComments;
-

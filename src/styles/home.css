@@ -8,10 +8,17 @@
 
 :root {
   --border-radius: 4px;
-  --color-text: #333;
+
+  /* ✅ theme.css 토큰과 연결 (최소 수정 핵심) */
+  --color-bg: var(--bg, #fafdff);
+  --color-surface: var(--surface, #ffffff);
+  --color-border: var(--border, rgba(118, 207, 197, 0.1));
+  --color-text: var(--text, #333);
+
   --color-primary: #7026b9;
   --color-code-bg: #fff4db;
   --color-code: #8a6534;
+
   --font-sans: "MonaSansExpanded", -apple-system, BlinkMacSystemFont,
     "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji";
@@ -35,6 +42,12 @@
   --size-gap: var(--space-6);
 }
 
+/* ✅ 다크에서만 inline code 톤 다운(레이아웃 변경 없음) */
+html[data-theme="dark"] {
+  --color-code-bg: color-mix(in srgb, var(--color-surface) 88%, #8a6534 12%);
+  --color-code: color-mix(in srgb, #ffe9b2 85%, #ffffff 15%);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -43,7 +56,8 @@
 
 html,
 body {
-  background: #fafdff;
+  /* ✅ 배경/텍스트를 theme 토큰으로 */
+  background: var(--color-bg);
   -webkit-text-size-adjust: 100%;
   font: sans-serif;
   font-size: var(--font-md);
@@ -124,7 +138,8 @@ samp {
 
 abbr,
 acronym {
-  border-bottom: 1px dotted rgba(0, 0, 0, 0.5);
+  /* ✅ 검정 고정 → 텍스트 기반으로 */
+  border-bottom: 1px dotted color-mix(in srgb, var(--color-text) 55%, transparent);
   cursor: help;
 }
 
@@ -176,10 +191,14 @@ nav {
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(250, 253, 255, 0.95);
+
+  /* ✅ 배경/테두리/그림자만 테마 대응 (디자인 유지) */
+  background: rgba(250, 253, 255, 0.95); /* fallback */
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
   backdrop-filter: blur(10px);
+
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(118, 207, 197, 0.1);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, #76cfc5 30%);
 }
 
 .site-name {
@@ -243,7 +262,8 @@ nav {
 
 /* Hero Section */
 .hero-section {
-  background: #fafdff;
+  /* ✅ 배경을 테마 대응 */
+  background: var(--color-bg);
   min-height: 100vh;
   width: 100%;
   display: flex;
@@ -311,7 +331,10 @@ nav {
 .hero-intro-text {
   font-size: 1.18rem;
   margin: 0;
-  color: #444;
+
+  /* ✅ #444 고정 → 테마 텍스트 기반 */
+  color: color-mix(in srgb, var(--color-text) 92%, transparent);
+
   line-height: 1.8;
   font-weight: 400;
 }
@@ -328,7 +351,10 @@ nav {
   font-size: 1.15rem;
   font-weight: 700;
   border-radius: 2rem;
-  border: 2px solid #b0c4cc;
+
+  /* ✅ 중립 테두리만 테마 대응 */
+  border: 2px solid color-mix(in srgb, var(--color-border) 80%, #b0c4cc 20%);
+
   background: linear-gradient(90deg, #ffe9b2 0%, #76cfc5 100%);
   color: #fff;
   cursor: pointer;
@@ -352,7 +378,10 @@ nav {
   font-size: 1.15rem;
   font-weight: 700;
   border-radius: 2rem;
-  border: 2px solid #b0c4cc;
+
+  /* ✅ 중립 테두리만 테마 대응 */
+  border: 2px solid color-mix(in srgb, var(--color-border) 80%, #b0c4cc 20%);
+
   background: linear-gradient(90deg, #eaf6fa 0%, #c7e6f5 100%);
   color: #179b8e;
   cursor: pointer;
@@ -368,7 +397,7 @@ nav {
 .hero-btn-alt:hover {
   background: linear-gradient(90deg, #c7e6f5 0%, #eaf6fa 100%);
   color: #179b8e;
-  border: 2px solid #b0c4cc;
+  border: 2px solid color-mix(in srgb, var(--color-border) 80%, #b0c4cc 20%);
   transform: scale(1.06);
   box-shadow: 0 4px 16px rgba(94, 194, 182, 0.1);
 }
@@ -408,7 +437,10 @@ nav {
   justify-content: center;
   border-radius: 0;
   background: none;
-  color: #222;
+
+  /* ✅ #222 고정 → 테마 텍스트 */
+  color: var(--color-text);
+
   font-size: 2.2rem;
   text-decoration: none;
   transition: color 0.2s;
@@ -743,8 +775,9 @@ nav {
 }
 
 .technology-tag {
-  background: #edf2f7;
-  color: #4a5568;
+  /* ✅ 연한 회색 고정 → surface 기반 */
+  background: color-mix(in srgb, var(--color-surface) 92%, #edf2f7 8%);
+  color: color-mix(in srgb, var(--color-text) 75%, transparent);
   padding: 0.3rem 0.8rem;
   border-radius: 20px;
   font-size: 0.9rem;
@@ -800,7 +833,10 @@ nav {
 .proficiency-content {
   max-width: 1200px;
   margin: 0 auto;
-  color: #333;
+
+  /* ✅ #333 고정 → 테마 텍스트 */
+  color: var(--color-text);
+
   text-align: center;
   padding: 0 2rem;
   display: flex;
@@ -925,7 +961,10 @@ nav {
 /* Footer */
 footer {
   height: 60px;
-  background: #fff;
+
+  /* ✅ #fff 고정 → 테마 배경 */
+  background: var(--color-surface);
+
   width: 100vw;
   display: flex;
   align-items: center;
@@ -961,11 +1000,15 @@ footer {
   align-items: center;
   height: 100%;
   gap: 0.5rem;
-  color: #000;
+
+  /* ✅ #000 고정 → 테마 텍스트 */
+  color: var(--color-text);
 }
 
 .footer-link {
-  color: #000;
+  /* ✅ #000 고정 → 테마 텍스트 */
+  color: var(--color-text);
+
   text-decoration: none;
   margin: 0 0.5em;
 }
@@ -975,7 +1018,9 @@ footer {
 }
 
 .footer-github {
-  color: #000;
+  /* ✅ #000 고정 → 테마 텍스트 */
+  color: var(--color-text);
+
   text-decoration: none;
   padding-bottom: 1px;
   transition: all 0.3s ease;

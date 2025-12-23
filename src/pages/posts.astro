@@ -1,12 +1,13 @@
 ---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
 import { getCollection, type CollectionEntry } from "astro:content";
 import "../styles/home.css";
 import "../styles/posts.css";
 import "../styles/page-transitions.css";
-import Navigation from "../components/Navigation.astro";
-import Footer from "../components/Footer.astro";
 import { siteConfig } from "../config/site";
 import { postImages } from "../config/posts-images";
+import "../styles/theme.css";
 
 // Get all posts from content collection
 const allPosts = (await getCollection("posts")) as CollectionEntry<"posts">[];
@@ -80,26 +81,25 @@ const posts: PostItem[] = await Promise.all(
       console.warn("Post missing slug:", post);
     }
 
+    // ✅ excerpt: frontmatter 우선, 없으면 body에서 자동 발췌
     let excerpt = post.data.excerpt;
     if (!excerpt) {
-      excerpt = `Read more about ${post.data.title}...`;
+      if (typeof post.body === "string" && post.body.trim().length > 0) {
+        excerpt = extractExcerptFromMarkdown(post.body, 260);
+      } else {
+        excerpt = `Read more about ${post.data.title}...`;
+      }
     }
 
-    // ✅ 수정: "이미지 필요 시에만 노출" 정책 (default 이미지 없음)
+    // ✅ "이미지 필요 시에만 노출" 정책 (default 이미지 없음)
     const hasImageKey = Object.prototype.hasOwnProperty.call(post.data, "image");
     const fm = post.data.image;
 
     let image: string | null;
 
     if (hasImageKey) {
-      // frontmatter에 image 키가 있으면:
-      // - 값이 있으면 사용
-      // - 비어 있으면 숨김
       image = typeof fm === "string" && fm.trim().length > 0 ? fm : null;
     } else {
-      // frontmatter에 image 키가 없으면:
-      // - slug 매핑이 있으면 사용
-      // - 없으면 숨김 (default 없음)
       image = slug in postImages ? postImages[slug] : null;
     }
 
@@ -134,268 +134,235 @@ const groupedPosts = posts.reduce((acc, post) => {
 const allTags = Array.from(new Set(posts.flatMap((post) => post.tags))).sort();
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Blog Posts - Foret Blog</title>
-    <script>
-      if ("scrollRestoration" in history) {
-        history.scrollRestoration = "manual";
-      }
-      window.scrollTo(0, 0);
-    </script>
-  </head>
-  <body>
-    <Navigation />
+<BaseLayout title="Blog Posts - Foret Blog">
+  <main class="posts-page">
+    <div class="posts-container page-content">
+      <div class="posts-header posts-header-animate">
+        <h1 class="posts-title">{siteConfig.posts.title}</h1>
+        <p class="posts-subtitle">{siteConfig.posts.subtitle}</p>
+      </div>
 
-    <main class="posts-page">
-      <div class="posts-container page-content">
-        <div class="posts-header posts-header-animate">
-          <h1 class="posts-title">{siteConfig.posts.title}</h1>
-          <p class="posts-subtitle">{siteConfig.posts.subtitle}</p>
+      <div class="search-filter-section posts-content-animate">
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder={siteConfig.posts.searchPlaceholder}
+            class="search-input"
+            id="search-input"
+          />
+          <svg
+            class="search-icon"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+            <path
+              d="m19 19-4.35-4.35"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
         </div>
+      </div>
 
-        <div class="search-filter-section posts-content-animate">
-          <div class="search-box">
-            <input
-              type="text"
-              placeholder={siteConfig.posts.searchPlaceholder}
-              class="search-input"
-              id="search-input"
-            />
-            <svg
-              class="search-icon"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16z"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path>
-              <path
-                d="m19 19-4.35-4.35"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"></path>
-            </svg>
-          </div>
-        </div>
-
-        <div class="tags-filter posts-content-animate">
-          <span class="tags-label">Filter by tags:</span>
-          <div class="tags-list">
-            {
-              allTags.map((tag) => (
-                <button class="tag-button" data-tag={tag.toLowerCase().replace(/\s+/g, "-")}>
-                  {tag}
-                </button>
-              ))
-            }
-          </div>
-        </div>
-
-        <div class="posts-list posts-content-animate">
+      <div class="tags-filter posts-content-animate">
+        <span class="tags-label">Filter by tags:</span>
+        <div class="tags-list">
           {
-            Object.entries(groupedPosts)
-              .sort(([a], [b]) => b.localeCompare(a))
-              .map(([dateKey, datePosts]) => (
-                <div class="date-group" data-date={dateKey}>
-                  <h2 class="date-header">{datePosts[0].dateText}</h2>
-
-                  <div class="date-card">
-                    {datePosts.map((post) => (
-                      <article class="post-item" data-post-id={post.slug}>
-                        <div class="post-summary">
-                          <div class="title-icon-left" />
-                          <h3 class="post-title">
-                            <a href={`/posts/${post.slug}`} class="post-title-link">
-                              {post.title}
-                            </a>
-                            <div class="title-icon-right" />
-                          </h3>
-
-                          {post.tags.length > 0 && (
-                            <div class="post-tags">
-                              {post.tags.map((tag) => (
-                                <span class="post-tag">{tag}</span>
-                              ))}
-                            </div>
-                          )}
-
-                          <button class="post-toggle" aria-label="Toggle post details">
-                            <span class="post-arrow">↓</span>
-                          </button>
-                        </div>
-
-                        <div class="post-details">
-                          <div class="post-content-wrapper">
-                            <div class="post-excerpt-wrapper">
-                              <p class="post-excerpt">{post.excerpt}</p>
-                              <div class="post-footer">
-                                <a href={`/posts/${post.slug}`} class="post-read-more">
-                                  Read more →
-                                </a>
-                              </div>
-                            </div>
-
-                            <div class="post-image-container">
-                              {post.image && (
-                                <img src={post.image} alt={post.title} class="post-image" />
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                </div>
-              ))
+            allTags.map((tag) => (
+              <button class="tag-button" data-tag={tag.toLowerCase().replace(/\s+/g, "-")}>
+                {tag}
+              </button>
+            ))
           }
         </div>
       </div>
-    </main>
 
-    <Footer />
-  </body>
-</html>
+      <div class="posts-list posts-content-animate">
+        {
+          Object.entries(groupedPosts)
+            .sort(([a], [b]) => b.localeCompare(a))
+            .map(([dateKey, datePosts]) => (
+              <div class="date-group" data-date={dateKey}>
+                <h2 class="date-header">{datePosts[0].dateText}</h2>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    window.scrollTo(0, 0);
-    setTimeout(() => window.scrollTo(0, 0), 0);
-  });
+                <div class="date-card">
+                  {datePosts.map((post) => (
+                    <article class="post-item" data-post-id={post.slug}>
+                      <div class="post-summary">
+                        <div class="title-icon-left" />
+                        <h3 class="post-title">
+                          <a href={`/posts/${post.slug}`} class="post-title-link">
+                            {post.title}
+                          </a>
+                          <div class="title-icon-right" />
+                        </h3>
 
-  window.addEventListener("pageshow", (event) => {
-    if (event.persisted) window.scrollTo(0, 0);
-  });
+                        {post.tags.length > 0 && (
+                          <div class="post-tags">
+                            {post.tags.map((tag) => (
+                              <span class="post-tag">{tag}</span>
+                            ))}
+                          </div>
+                        )}
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const pageContent = document.querySelector(".page-content");
-    if (pageContent) {
-      requestAnimationFrame(() => pageContent.classList.add("visible"));
-    }
+                        <button class="post-toggle" aria-label="Toggle post details">
+                          <span class="post-arrow">↓</span>
+                        </button>
+                      </div>
 
-    const header = document.querySelector(".posts-header-animate");
-    if (header) {
-      requestAnimationFrame(() => header.classList.add("visible"));
-    }
+                      <div class="post-details">
+                        <div class="post-content-wrapper">
+                          <div class="post-excerpt-wrapper">
+                            <p class="post-excerpt">{post.excerpt}</p>
+                            <div class="post-footer">
+                              <a href={`/posts/${post.slug}`} class="post-read-more">
+                                Read more →
+                              </a>
+                            </div>
+                          </div>
 
-    const contentElements = document.querySelectorAll(".posts-content-animate");
-    contentElements.forEach((element) => {
-      requestAnimationFrame(() => element.classList.add("visible"));
+                          <div class="post-image-container">
+                            {post.image && (
+                              <img src={post.image} alt={post.title} class="post-image" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ))
+        }
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const pageContent = document.querySelector(".page-content");
+      if (pageContent) requestAnimationFrame(() => pageContent.classList.add("visible"));
+
+      const header = document.querySelector(".posts-header-animate");
+      if (header) requestAnimationFrame(() => header.classList.add("visible"));
+
+      const contentElements = document.querySelectorAll(".posts-content-animate");
+      contentElements.forEach((el) => requestAnimationFrame(() => el.classList.add("visible")));
     });
-  });
 
-  const postToggles = document.querySelectorAll(".post-toggle");
-  const postSummaries = document.querySelectorAll(".post-summary");
+    // Toggle expand/collapse
+    const postToggles = document.querySelectorAll(".post-toggle");
+    const postSummaries = document.querySelectorAll(".post-summary");
 
-  postToggles.forEach((toggle) => {
-    toggle.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const postItem = toggle.closest(".post-item");
-      if (postItem) {
+    function setArrow(postItem, arrowEl) {
+      if (!postItem || !arrowEl) return;
+      arrowEl.textContent = postItem.classList.contains("expanded") ? "↑" : "↓";
+    }
+
+    postToggles.forEach((toggle) => {
+      toggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const postItem = toggle.closest(".post-item");
+        if (!postItem) return;
+
         postItem.classList.toggle("expanded");
         const arrow = toggle.querySelector(".post-arrow");
-        if (arrow) {
-          arrow.textContent = postItem.classList.contains("expanded") ? "↑" : "↓";
-        }
-      }
+        setArrow(postItem, arrow);
+      });
     });
-  });
 
-  postSummaries.forEach((summary) => {
-    summary.addEventListener("click", (e) => {
-      if ((e.target as HTMLElement).closest(".post-title-link")) return;
-      if ((e.target as HTMLElement).closest(".post-toggle")) return;
+    postSummaries.forEach((summary) => {
+      summary.addEventListener("click", (e) => {
+        const target = e.target;
 
-      const postItem = summary.closest(".post-item");
-      if (postItem) {
+        // title 링크 클릭은 토글로 취급하지 않음
+        if (target && target.closest && target.closest(".post-title-link")) return;
+        if (target && target.closest && target.closest(".post-toggle")) return;
+
+        const postItem = summary.closest(".post-item");
+        if (!postItem) return;
+
         postItem.classList.toggle("expanded");
         const arrow = postItem.querySelector(".post-arrow");
-        if (arrow) {
-          arrow.textContent = postItem.classList.contains("expanded") ? "↑" : "↓";
-        }
-      }
-    });
-  });
-
-  const searchInput = document.getElementById("search-input");
-  if (searchInput) {
-    searchInput.addEventListener("input", (e) => {
-      const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
-      const postItems = document.querySelectorAll(".post-item");
-
-      postItems.forEach((item) => {
-        const title =
-          item.querySelector(".post-title a")?.textContent?.toLowerCase() || "";
-        const excerpt =
-          item.querySelector(".post-excerpt")?.textContent?.toLowerCase() || "";
-
-        (item as HTMLElement).style.display =
-          title.includes(searchTerm) || excerpt.includes(searchTerm) ? "block" : "none";
-      });
-
-      const dateGroups = document.querySelectorAll(".date-group");
-      dateGroups.forEach((dateGroup) => {
-        const visibleItems = dateGroup.querySelectorAll(
-          '.post-item[style*="block"], .post-item:not([style*="none"])'
-        );
-        (dateGroup as HTMLElement).style.display = visibleItems.length > 0 ? "block" : "none";
+        setArrow(postItem, arrow);
       });
     });
-  }
 
-  const tagButtons = document.querySelectorAll(".tag-button");
-  const dateGroups = document.querySelectorAll(".date-group");
+    // Search
+    const searchInput = document.getElementById("search-input");
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        const value = e && e.target ? e.target.value : "";
+        const searchTerm = String(value).toLowerCase();
 
-  function applyFilters() {
-    const activeTags = Array.from(tagButtons)
-      .filter((btn) => btn.classList.contains("active"))
-      .map((btn) => btn.getAttribute("data-tag"))
-      .filter((tag): tag is string => tag !== null);
-
-    if (activeTags.length === 0) {
-      dateGroups.forEach((dateGroup) => {
-        dateGroup.querySelectorAll(".post-item").forEach((item) => {
-          (item as HTMLElement).style.display = "block";
+        const postItems = document.querySelectorAll(".post-item");
+        postItems.forEach((item) => {
+          const title = (item.querySelector(".post-title a")?.textContent || "").toLowerCase();
+          const excerpt = (item.querySelector(".post-excerpt")?.textContent || "").toLowerCase();
+          item.style.display = title.includes(searchTerm) || excerpt.includes(searchTerm) ? "block" : "none";
         });
-        (dateGroup as HTMLElement).style.display = "block";
+
+        const groups = document.querySelectorAll(".date-group");
+        groups.forEach((group) => {
+          const hasVisible = Array.from(group.querySelectorAll(".post-item")).some(
+            (it) => it.style.display !== "none"
+          );
+          group.style.display = hasVisible ? "block" : "none";
+        });
       });
-      return;
     }
 
-    dateGroups.forEach((dateGroup) => {
-      const postItems = dateGroup.querySelectorAll(".post-item");
-      let hasVisiblePosts = false;
+    // Tag filter
+    const tagButtons = document.querySelectorAll(".tag-button");
+    const dateGroups = document.querySelectorAll(".date-group");
 
-      postItems.forEach((item) => {
-        const postTags = Array.from(item.querySelectorAll(".post-tag")).map(
-          (tag) => tag.textContent?.toLowerCase().replace(/\s+/g, "-") || ""
-        );
+    function applyFilters() {
+      const activeTags = Array.from(tagButtons)
+        .filter((btn) => btn.classList.contains("active"))
+        .map((btn) => btn.getAttribute("data-tag"))
+        .filter((t) => t !== null);
 
-        const hasMatchingTag = activeTags.some((activeTag) => postTags.includes(activeTag));
+      if (activeTags.length === 0) {
+        dateGroups.forEach((group) => {
+          group.querySelectorAll(".post-item").forEach((item) => (item.style.display = "block"));
+          group.style.display = "block";
+        });
+        return;
+      }
 
-        (item as HTMLElement).style.display = hasMatchingTag ? "block" : "none";
-        if (hasMatchingTag) hasVisiblePosts = true;
+      dateGroups.forEach((group) => {
+        const items = group.querySelectorAll(".post-item");
+        let hasVisible = false;
+
+        items.forEach((item) => {
+          const postTags = Array.from(item.querySelectorAll(".post-tag")).map((tag) =>
+            (tag.textContent || "").toLowerCase().replace(/\s+/g, "-")
+          );
+
+          const matched = activeTags.some((t) => postTags.includes(t));
+          item.style.display = matched ? "block" : "none";
+          if (matched) hasVisible = true;
+        });
+
+        group.style.display = hasVisible ? "block" : "none";
       });
+    }
 
-      (dateGroup as HTMLElement).style.display = hasVisiblePosts ? "block" : "none";
+    tagButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        button.classList.toggle("active");
+        applyFilters();
+      });
     });
-  }
-
-  tagButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      button.classList.toggle("active");
-      applyFilters();
-    });
-  });
-</script>
+  </script>
+</BaseLayout>

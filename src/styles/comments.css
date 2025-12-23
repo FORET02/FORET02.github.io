@@ -1,6 +1,9 @@
 /* Comments Page Styles */
+
+/* ✅ 라이트/다크 모두 대응: theme.css 토큰 사용
+   - home.css 등에서 body 배경을 잡고 있을 수 있어 !important 유지 */
 body {
-  background: linear-gradient(120deg, #f8fafc 0%, #f5f7fa 100%) !important;
+  background: var(--bg, #f8fafc) !important;
   min-height: 100vh;
 }
 
@@ -37,7 +40,8 @@ body {
 
 .comments-subtitle {
   font-size: 1.2rem;
-  color: #666;
+  /* ✅ #666 고정 제거 (theme 토큰으로 통일) */
+  color: var(--text-muted, #666);
   margin: 0 auto;
   max-width: 600px;
   line-height: 1.6;
@@ -53,6 +57,15 @@ body {
 
 .guidelines-section {
   margin-bottom: 2.5rem;
+
+  /* ✅ 다크에서 theme.css가 .guidelines-section을 카드로 만들기 때문에
+     패딩/라운드가 없으면 너무 답답해 보임 → 최소 보강 */
+  padding: 2rem;
+  border-radius: 20px;
+
+  /* ✅ 라이트에서는 원래처럼 "배경 없음" 유지 (theme.css가 다크에서만 표면 처리) */
+  background: transparent;
+  border: 1px solid transparent;
 }
 
 .guidelines-title {
@@ -70,12 +83,15 @@ body {
   gap: 0.5rem 1.5rem;
   list-style: none;
   padding: 0;
-  margin: 0 auto 2.5rem auto;
+  margin: 0 auto 0 auto; /* 섹션 패딩이 있으니 하단 마진 과다 방지 */
   max-width: 700px;
   text-align: left;
   justify-content: center;
   font-size: 1.1rem;
-  color: #666;
+
+  /* ✅ #666 고정 제거 (theme 토큰으로 통일) */
+  color: var(--text-muted, #666);
+
   line-height: 1.7;
 }
 
@@ -127,11 +143,17 @@ body {
 }
 
 .comments-section {
-  background: white;
+  /* ✅ white 고정 제거 */
+  background: var(--surface, #fff);
+  color: var(--text, #333);
+
   border-radius: 20px;
   padding: 2.5rem 3rem 3rem 3rem;
+
+  /* ✅ 다크에서도 자연스럽게 */
+  border: 1px solid var(--border, #e9ecef);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e9ecef;
+
   margin: 0 auto 3rem auto;
   max-width: 1200px;
   min-height: 200px;
@@ -156,6 +178,10 @@ body {
     font-size: 1.1rem;
   }
 
+  .guidelines-section {
+    padding: 1.5rem;
+  }
+
   .guidelines-list {
     grid-template-columns: 1fr;
     gap: 0.5rem;
@@ -169,4 +195,3 @@ body {
     padding: 2rem 1.5rem;
   }
 }
-
