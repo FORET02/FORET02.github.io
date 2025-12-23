@@ -1,13 +1,13 @@
 ---
-const SHOW_AFTER_PX = 400; // 이 값 이상 스크롤하면 버튼 표시
+const SHOW_AFTER_PX = 400; 
 ---
 
 <button
   id="back-to-top"
   class="btt"
   type="button"
-  aria-label="맨 위로 이동"
-  title="맨 위로"
+  aria-label="Back to top"
+  title="Back to top"
 >
   <svg class="btt__icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
     <path
@@ -23,7 +23,6 @@ const SHOW_AFTER_PX = 400; // 이 값 이상 스크롤하면 버튼 표시
       const btn = document.getElementById("back-to-top");
       if (!btn) return;
 
-      // 중복 바인딩 방지
       if (!btn.dataset.bound) {
         btn.addEventListener("click", () => {
           const reduce =
@@ -40,7 +39,6 @@ const SHOW_AFTER_PX = 400; // 이 값 이상 스크롤하면 버튼 표시
         btn.dataset.show = show ? "1" : "0";
       };
 
-      // 전역 1회만 scroll 핸들러 등록
       if (!window.__bttScrollBound) {
         window.__bttScrollBound = true;
         window.addEventListener(
@@ -58,7 +56,6 @@ const SHOW_AFTER_PX = 400; // 이 값 이상 스크롤하면 버튼 표시
       setVisible();
     };
 
-    // Astro 페이지 전환(있을 경우)에서도 재마운트
     document.addEventListener("astro:page-load", mount);
     mount();
   })();
@@ -68,7 +65,7 @@ const SHOW_AFTER_PX = 400; // 이 값 이상 스크롤하면 버튼 표시
   .btt {
     position: fixed;
     right: 18px;
-    bottom: 22px; /* footer와 겹치면 60~90px로 올리세요 */
+    bottom: 22px; 
     z-index: 50;
 
     width: 44px;
@@ -112,7 +109,6 @@ const SHOW_AFTER_PX = 400; // 이 값 이상 스크롤하면 버튼 표시
     outline-offset: 3px;
   }
 
-  /* 다크모드(프로젝트가 class/attribute 어느 방식을 쓰든 대응) */
   :global(html.dark) .btt,
   :global(body.dark) .btt,
   :global(html[data-theme="dark"]) .btt,
