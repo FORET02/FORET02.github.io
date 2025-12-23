@@ -19,7 +19,6 @@
   padding-top: 160px;
   padding-bottom: 4rem;
 
-  /* ✅ 배경 테마 대응 */
   background: var(--bg, #fafdff);
 }
 
@@ -31,7 +30,7 @@
 }
 
 .post-header-card {
-  /* ✅ 카드 배경/보더/텍스트 테마 대응 */
+
   background: var(--surface, #fff);
   border: 1px solid var(--border, #e9ecef);
 
@@ -39,7 +38,6 @@
   padding: 2.5rem 2rem;
   margin-bottom: 2.5rem;
 
-  /* ✅ 다크에서 과한 번짐 방지(형태 유지) */
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
   width: 100%;
@@ -126,7 +124,6 @@
   font-size: 1rem;
   font-weight: 600;
 
-  /* ✅ #333 → 테마 텍스트 */
   color: var(--text, #333);
 
   line-height: 1.2;
@@ -136,7 +133,6 @@
 .post-detail-read-time {
   font-size: 0.9rem;
 
-  /* ✅ #666 → 테마 텍스트 기반 */
   color: color-mix(in srgb, var(--text, #333) 65%, transparent);
 
   line-height: 1.2;
@@ -144,7 +140,7 @@
 
 /* Post content container */
 .post-detail-page .post-content {
-  /* ✅ 본문 카드 배경/보더/텍스트 테마 대응 */
+
   background: var(--surface, #fff);
   border: 1px solid var(--border, #e9ecef);
   color: var(--text, #333);
@@ -152,7 +148,7 @@
   border-radius: 20px;
   padding: 2.5rem 2rem;
 
-  /* ✅ 다크에서 과한 번짐 방지(형태 유지) */
+
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
   width: 100%;
@@ -167,7 +163,7 @@
   margin-top: 0 !important;
   margin-bottom: 2rem !important;
 
-  /* ✅ 문단 텍스트 테마 대응 */
+
   color: var(--text, #333) !important;
 }
 
@@ -180,7 +176,6 @@
   margin-left: 0 !important;
   margin-right: 0 !important;
 
-  /* ✅ #333 → 테마 텍스트 */
   color: var(--text, #333) !important;
 
   line-height: 1.3 !important;
@@ -208,7 +203,7 @@
   margin-left: 0 !important;
   margin-right: 0 !important;
 
-  /* ✅ #333 → 테마 텍스트 */
+
   color: var(--text, #333) !important;
 
   line-height: 1.3 !important;
@@ -231,7 +226,7 @@
   margin-left: 0 !important;
   margin-right: 0 !important;
 
-  /* ✅ #333 → 테마 텍스트 */
+
   color: var(--text, #333) !important;
 
   line-height: 1.3 !important;
@@ -251,7 +246,7 @@
   margin-top: var(--space-4, 24px) !important;
   text-align: left !important;
 
-  /* ✅ 리스트 텍스트 테마 대응 */
+
   color: var(--text, #333) !important;
 }
 
@@ -264,14 +259,14 @@
   margin-bottom: calc(var(--space-4, 24px) / 2) !important;
   text-align: left !important;
 
-  /* ✅ 리스트 텍스트 테마 대응 */
+
   color: var(--text, #333) !important;
 }
 
 .post-detail-page .post-content :global(li) :global(strong) {
   font-weight: 700;
 
-  /* ✅ #333 → 테마 텍스트 */
+
   color: var(--text, #333);
 }
 
@@ -306,7 +301,7 @@
 .post-detail-page .post-content :global(kbd),
 .post-detail-page .post-content :global(samp),
 .post-detail-page .post-content :global(tt) {
-  /* ✅ 인라인 코드: 라이트는 기존 느낌 유지, 다크는 surface 기반으로 */
+
   background-color: color-mix(in srgb, var(--surface, #fff) 80%, #fff4db 20%);
   border-radius: 4px;
   color: color-mix(in srgb, var(--text, #333) 80%, #8a6534 20%);
@@ -330,7 +325,7 @@
 .post-detail-page .post-content :global(pre.astro-code),
 .post-detail-page .post-content :global(pre[class*="astro-code"]),
 .post-detail-page .post-content :global(pre[style*="background-color"]) {
-  /* ✅ 코드블록 배경/보더/텍스트 테마 대응 */
+
   background: color-mix(in srgb, var(--surface, #fff) 92%, var(--text, #333) 8%) !important;
   border: 1px solid var(--border, #e9ecef) !important;
 
@@ -349,7 +344,6 @@
 .post-detail-page .post-content :global(pre[style*="background-color"]) :global(code) {
   background: transparent !important;
 
-  /* ✅ 코드 텍스트 테마 대응 */
   color: var(--text, #333) !important;
 
   padding: 0 !important;
@@ -359,7 +353,7 @@
 .post-detail-page .post-content :global(pre) :global(code) :global(span),
 .post-detail-page .post-content :global(pre.astro-code) :global(code) :global(span),
 .post-detail-page .post-content :global(pre[class*="astro-code"]) :global(code) :global(span) {
-  /* ✅ 하이라이트 span이 하얀/검은 고정되지 않게 */
+
   color: var(--text, #333) !important;
 }
 
@@ -380,7 +374,6 @@
   padding-left: 1rem;
   margin: 24px 0 !important;
 
-  /* ✅ 인용문 텍스트 테마 대응 */
   color: color-mix(in srgb, var(--text, #333) 65%, transparent);
 
   font-style: italic;
@@ -392,7 +385,6 @@
 }
 
 .post-detail-page .post-content :global(hr) {
-  /* ✅ 구분선 테마 대응 */
   background: color-mix(in srgb, var(--text, #333) 20%, transparent);
 
   border: none;
@@ -414,7 +406,6 @@
 .post-detail-page .post-content :global(a) {
   background-color: transparent;
 
-  /* ✅ 링크: 기존 보라색 유지하되 다크에서 너무 튀면 text 기반으로 살짝 섞임 */
   color: color-mix(in srgb, #7026b9 75%, var(--text, #333) 25%);
 
   font-weight: 500;
@@ -432,14 +423,12 @@
 
 /* Code Example Block */
 .post-detail-page .post-content :global(.code-example) {
-  /* ✅ 코드 예시 박스 테마 대응 */
   background: color-mix(in srgb, var(--surface, #fff) 92%, var(--text, #333) 8%);
 
   border-radius: 8px;
   padding: 1.5rem;
   margin: 1.5rem 0;
 
-  /* ✅ 경계가 필요하면 테두리도 토큰으로 */
   border: 1px solid var(--border, #e9ecef);
 }
 

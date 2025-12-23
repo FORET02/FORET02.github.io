@@ -9,7 +9,6 @@
 :root {
   --border-radius: 4px;
 
-  /* ✅ theme.css 토큰과 연결 (최소 수정 핵심) */
   --color-bg: var(--bg, #fafdff);
   --color-surface: var(--surface, #ffffff);
   --color-border: var(--border, rgba(118, 207, 197, 0.1));
@@ -42,7 +41,6 @@
   --size-gap: var(--space-6);
 }
 
-/* ✅ 다크에서만 inline code 톤 다운(레이아웃 변경 없음) */
 html[data-theme="dark"] {
   --color-code-bg: color-mix(in srgb, var(--color-surface) 88%, #8a6534 12%);
   --color-code: color-mix(in srgb, #ffe9b2 85%, #ffffff 15%);
@@ -56,7 +54,6 @@ html[data-theme="dark"] {
 
 html,
 body {
-  /* ✅ 배경/텍스트를 theme 토큰으로 */
   background: var(--color-bg);
   -webkit-text-size-adjust: 100%;
   font: sans-serif;
@@ -192,8 +189,7 @@ nav {
   right: 0;
   z-index: 1000;
 
-  /* ✅ 배경/테두리/그림자만 테마 대응 (디자인 유지) */
-  background: rgba(250, 253, 255, 0.95); /* fallback */
+  background: rgba(250, 253, 255, 0.95); 
   background: color-mix(in srgb, var(--color-bg) 92%, transparent);
   backdrop-filter: blur(10px);
 
@@ -262,7 +258,6 @@ nav {
 
 /* Hero Section */
 .hero-section {
-  /* ✅ 배경을 테마 대응 */
   background: var(--color-bg);
   min-height: 100vh;
   width: 100%;
@@ -332,7 +327,6 @@ nav {
   font-size: 1.18rem;
   margin: 0;
 
-  /* ✅ #444 고정 → 테마 텍스트 기반 */
   color: color-mix(in srgb, var(--color-text) 92%, transparent);
 
   line-height: 1.8;
@@ -775,7 +769,6 @@ nav {
 }
 
 .technology-tag {
-  /* ✅ 연한 회색 고정 → surface 기반 */
   background: color-mix(in srgb, var(--color-surface) 92%, #edf2f7 8%);
   color: color-mix(in srgb, var(--color-text) 75%, transparent);
   padding: 0.3rem 0.8rem;
@@ -834,7 +827,6 @@ nav {
   max-width: 1200px;
   margin: 0 auto;
 
-  /* ✅ #333 고정 → 테마 텍스트 */
   color: var(--color-text);
 
   text-align: center;
@@ -962,7 +954,6 @@ nav {
 footer {
   height: 60px;
 
-  /* ✅ #fff 고정 → 테마 배경 */
   background: var(--color-surface);
 
   width: 100vw;
@@ -1001,12 +992,10 @@ footer {
   height: 100%;
   gap: 0.5rem;
 
-  /* ✅ #000 고정 → 테마 텍스트 */
   color: var(--color-text);
 }
 
 .footer-link {
-  /* ✅ #000 고정 → 테마 텍스트 */
   color: var(--color-text);
 
   text-decoration: none;
@@ -1018,7 +1007,6 @@ footer {
 }
 
 .footer-github {
-  /* ✅ #000 고정 → 테마 텍스트 */
   color: var(--color-text);
 
   text-decoration: none;

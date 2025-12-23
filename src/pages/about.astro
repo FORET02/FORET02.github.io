@@ -6,13 +6,12 @@ import "../styles/theme.css";
 
 <html lang="ko">
   <head>
-    <!-- ✅ Theme init (FOUC 방지) : 기본은 항상 light -->
     <script is:inline>
       (() => {
         try {
-          const saved = localStorage.getItem("theme"); // "light" | "dark" | null
+          const saved = localStorage.getItem("theme"); 
           const theme =
-            saved === "dark" || saved === "light" ? saved : "light"; // ✅ 기본 light
+            saved === "dark" || saved === "light" ? saved : "light"; 
 
           document.documentElement.dataset.theme = theme;
           document.documentElement.style.colorScheme = theme;

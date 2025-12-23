@@ -32,17 +32,14 @@ const GiscusComments: React.FC<GiscusCommentsProps> = ({
       setMode((prev) => (prev === next ? prev : next));
     };
 
-    // 초기 동기화
     sync();
 
-    // data-theme 변경 감지
     const observer = new MutationObserver(sync);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["data-theme"],
     });
 
-    // 다른 탭/창에서 localStorage theme 변경 시 반영
     const onStorage = (e: StorageEvent) => {
       if (e.key !== STORAGE_KEY) return;
       sync();

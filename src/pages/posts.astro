@@ -81,7 +81,6 @@ const posts: PostItem[] = await Promise.all(
       console.warn("Post missing slug:", post);
     }
 
-    // ✅ excerpt: frontmatter 우선, 없으면 body에서 자동 발췌
     let excerpt = post.data.excerpt;
     if (!excerpt) {
       if (typeof post.body === "string" && post.body.trim().length > 0) {
@@ -91,7 +90,6 @@ const posts: PostItem[] = await Promise.all(
       }
     }
 
-    // ✅ "이미지 필요 시에만 노출" 정책 (default 이미지 없음)
     const hasImageKey = Object.prototype.hasOwnProperty.call(post.data, "image");
     const fm = post.data.image;
 

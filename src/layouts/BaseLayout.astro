@@ -11,12 +11,11 @@ const { title = "Foret Blog" } = Astro.props;
 
 <html lang="en">
   <head>
-    <!-- ✅ Theme init: 기본 light, 저장값이 dark면 dark (FOUC 방지) -->
     <script is:inline>
       (() => {
         try {
-          const saved = localStorage.getItem("theme"); // "light" | "dark" | null
-          const theme = saved === "dark" ? "dark" : "light"; // ✅ 기본 light
+          const saved = localStorage.getItem("theme"); 
+          const theme = saved === "dark" ? "dark" : "light";
           document.documentElement.dataset.theme = theme;
           document.documentElement.style.colorScheme = theme;
         } catch {
@@ -32,7 +31,6 @@ const { title = "Foret Blog" } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
 
-    <!-- ✅ 스크롤 복구는 manual로 고정 (페이지별 중복 제거 예정) -->
     <script is:inline>
       (() => {
         if ("scrollRestoration" in history) {
@@ -47,7 +45,6 @@ const { title = "Foret Blog" } = Astro.props;
     <slot />
     <Footer />
 
-    <!-- ✅ scroll-to-top: Layout에서만 1회 처리 -->
     <script is:inline>
       (() => {
         const toTop = () => window.scrollTo(0, 0);
