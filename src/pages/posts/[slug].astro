@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import GiscusComments from "../../components/GiscusComments";
 
 import { getCollection, type CollectionEntry } from "astro:content";
 import "../../styles/home.css";
@@ -147,6 +148,8 @@ const dateValue = post.data?.date;
       <div class="post-content post-content-animate">
         {ContentComponent ? <ContentComponent /> : <div set:html={ContentHtml} />}
       </div>
+
+      <GiscusComments client:load mapping="pathname" />
     </div>
   </main>
 

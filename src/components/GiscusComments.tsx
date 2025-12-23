@@ -1,10 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Giscus from "@giscus/react";
 
+type GiscusMapping = "pathname" | "url" | "title" | "og:title" | "specific" | "number";
+
 interface GiscusCommentsProps {
   repo?: string;
   repoId?: string;
   categoryId?: string;
+
+  mapping?: GiscusMapping;
+
+  term?: string;
 }
 
 type ThemeMode = "light" | "dark";
@@ -21,6 +27,8 @@ const GiscusComments: React.FC<GiscusCommentsProps> = ({
   repo,
   repoId,
   categoryId,
+  mapping = "pathname", 
+  term,
 }) => {
   const [mode, setMode] = useState<ThemeMode>("light");
 
@@ -52,7 +60,10 @@ const GiscusComments: React.FC<GiscusCommentsProps> = ({
     };
   }, []);
 
-  const giscusKey = useMemo(() => `giscus-${mode}`, [mode]);
+  const giscusKey = useMemo(
+    () => `giscus-${mode}-${mapping}-${mapping === "specific" ? term ?? "" : ""}`,
+    [mode, mapping, term]
+  );
 
   const giscusConfig = useMemo(
     () => ({
@@ -69,7 +80,11 @@ const GiscusComments: React.FC<GiscusCommentsProps> = ({
         categoryId ||
         import.meta.env.PUBLIC_GISCUS_CATEGORY_ID ||
         "DIC_kwDOQhFeM84CzVPU",
-      mapping: "pathname" as const,
+
+      mapping: mapping as GiscusMapping,
+      
+      term: mapping === "specific" ? term : undefined,
+
       reactionsEnabled: "1" as const,
       emitMetadata: "0" as const,
       inputPosition: "bottom" as const,
@@ -77,7 +92,7 @@ const GiscusComments: React.FC<GiscusCommentsProps> = ({
       lang: "en" as const,
       loading: "lazy" as const,
     }),
-    [repo, repoId, categoryId, mode]
+    [repo, repoId, categoryId, mode, mapping, term]
   );
 
   return (
@@ -89,6 +104,7 @@ const GiscusComments: React.FC<GiscusCommentsProps> = ({
         category={giscusConfig.category}
         categoryId={giscusConfig.categoryId}
         mapping={giscusConfig.mapping}
+        term={giscusConfig.term}
         reactionsEnabled={giscusConfig.reactionsEnabled}
         emitMetadata={giscusConfig.emitMetadata}
         inputPosition={giscusConfig.inputPosition}
