@@ -1,4 +1,6 @@
 ---
+const { lang = 'en' } = Astro.props;
+
 const repo = import.meta.env.PUBLIC_GISCUS_REPO;
 const repoId = import.meta.env.PUBLIC_GISCUS_REPO_ID;
 const category = import.meta.env.PUBLIC_GISCUS_CATEGORY;
@@ -17,7 +19,7 @@ const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
     data-reactions-enabled="1"
     data-emit-metadata="0"
     data-input-position="top"
-    data-lang="en"
+    data-lang={lang}
     data-loading="lazy"
   ></div>
 </section>
@@ -27,24 +29,94 @@ const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
     const host = document.getElementById("giscus_thread");
     if (!host) return;
 
-    if (host.querySelector("script")) return;
+    const cfg = {
+      repo: host.getAttribute("data-repo") || "",
+      repoId: host.getAttribute("data-repo-id") || "",
+      category: host.getAttribute("data-category") || "",
+      categoryId: host.getAttribute("data-category-id") || "",
+      mapping: host.getAttribute("data-mapping") || "pathname",
+      strict: host.getAttribute("data-strict") || "0",
+      reactionsEnabled: host.getAttribute("data-reactions-enabled") || "1",
+      emitMetadata: host.getAttribute("data-emit-metadata") || "0",
+      inputPosition: host.getAttribute("data-input-position") || "top",
+      lang: host.getAttribute("data-lang") || "ko",
+      loading: host.getAttribute("data-loading") || "lazy",
+    };
 
-    const s = document.createElement("script");
-    s.src = "https://giscus.app/client.js";
-    s.async = true;
-    s.crossOrigin = "anonymous";
-
-    for (const [k, v] of Object.entries(host.dataset)) {
-      s.setAttribute(`data-${k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`, v);
+    function getGiscusTheme() {
+      const root = document.documentElement;
+      const isDark = root.classList.contains("dark-mode") || root.dataset.theme === "dark";
+      return isDark ? "dark_dimmed" : "light";
     }
 
-    const theme = document.documentElement?.dataset?.theme === "dark" ? "dark_dimmed" : "light";
-    s.setAttribute("data-theme", theme);
+    function postThemeToGiscus() {
+      const iframe = document.querySelector("iframe.giscus-frame");
+      if (!iframe) return false;
 
-    host.appendChild(s);
+      iframe.contentWindow?.postMessage(
+        { giscus: { setConfig: { theme: getGiscusTheme() } } },
+        "https://giscus.app"
+      );
+      return true;
+    }
+
+    function syncThemeWithRetry(tries = 20) {
+      if (postThemeToGiscus()) return;
+      if (tries <= 0) return;
+      setTimeout(() => syncThemeWithRetry(tries - 1), 200);
+    }
+
+    function mountGiscus(forceRemount = false) {
+      if (!forceRemount && document.querySelector("iframe.giscus-frame")) {
+        syncThemeWithRetry();
+        return;
+      }
+
+      host.innerHTML = "";
+
+      const s = document.createElement("script");
+      s.src = "https://giscus.app/client.js";
+      s.async = true;
+      s.crossOrigin = "anonymous";
+
+      s.setAttribute("data-repo", cfg.repo);
+      s.setAttribute("data-repo-id", cfg.repoId);
+      s.setAttribute("data-category", cfg.category);
+      s.setAttribute("data-category-id", cfg.categoryId);
+      s.setAttribute("data-mapping", cfg.mapping);
+      s.setAttribute("data-strict", cfg.strict);
+      s.setAttribute("data-reactions-enabled", cfg.reactionsEnabled);
+      s.setAttribute("data-emit-metadata", cfg.emitMetadata);
+      s.setAttribute("data-input-position", cfg.inputPosition);
+      s.setAttribute("data-lang", cfg.lang);
+      s.setAttribute("data-loading", cfg.loading);
+
+      s.setAttribute("data-theme", getGiscusTheme());
+
+      host.appendChild(s);
+
+      syncThemeWithRetry();
+    }
+
+    mountGiscus(false);
+
+    document.addEventListener("astro:page-load", () => {
+      mountGiscus(true);
+    });
+
+    const obs = new MutationObserver(() => syncThemeWithRetry());
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    });
+
+    window.addEventListener("foret:theme-change", () => syncThemeWithRetry());
   })();
 </script>
 
 <style>
-  .giscus-wrap { margin-top: 3rem; padding-top: 2rem; }
+  .giscus-wrap {
+    margin-top: 3rem;
+    padding-top: 2rem;
+  }
 </style>
