@@ -169,6 +169,10 @@ const postsWithMetadata = posts.map((post) => {
     meta?.label?.[DEFAULT_LOCALE] ??
     category;
 
+  // ✅ [CHANGED] 이미지 유무를 미리 계산 (fallback 없이)
+  const image = getPostImage(post);
+  const hasImage = Boolean(image);
+
   return {
     url: getPostPermalink(post),
     title: post.data.h1 ?? post.data.title,
@@ -176,7 +180,10 @@ const postsWithMetadata = posts.map((post) => {
     category,
     categoryLabel,
     date: formatDate(post.data.date, lang),
-    image: getPostImage(post),
+    // ✅ [CHANGED]
+    image,
+    // ✅ [ADDED]
+    hasImage,
   };
 });
 
@@ -321,9 +328,11 @@ if (defaultAlternate) {
               </div>
             )}
 
-            <div class="post__date_right category">
-              <div class="category__item date__item--light-blue">{post.date}</div>
-            </div>
+            {post.hasImage && (
+              <div class="post__date_right category">
+                <div class="category__item date__item--light-blue">{post.date}</div>
+              </div>
+            )}
 
             {post.image && (
               <div class="post__thumbnail">
@@ -334,6 +343,12 @@ if (defaultAlternate) {
             )}
 
             <div class="post__content">
+              {!post.hasImage && (
+                <div class="post__date_inline category">
+                  <div class="category__item date__item--light-blue">{post.date}</div>
+                </div>
+              )}
+
               <h2 class="post__title">{post.title}</h2>
               {post.announcement && (
                 <div class="post__summary">{post.announcement}</div>

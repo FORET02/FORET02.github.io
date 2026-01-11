@@ -29,7 +29,7 @@ const siteConfig: SiteConfig = {
 
   // Blog settings
   postsPerPage: 10,
-  featuredImageFallback: '/img/posts/placeholder.svg',
+  //featuredImageFallback: '/img/posts/placeholder.svg',
 
   // Contact & social links (Korean only) — GitHub만 사용
   contactLinks: [
