@@ -1,10 +1,10 @@
 ---
-const lang = 'en';
-
 const repo = import.meta.env.PUBLIC_GISCUS_REPO;
 const repoId = import.meta.env.PUBLIC_GISCUS_REPO_ID;
 const category = import.meta.env.PUBLIC_GISCUS_CATEGORY;
 const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
+
+const giscusLang = "en";
 ---
 
 <section class="giscus-wrap">
@@ -19,7 +19,7 @@ const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
     data-reactions-enabled="1"
     data-emit-metadata="0"
     data-input-position="top"
-    data-lang={lang}
+    data-lang={giscusLang}
     data-loading="lazy"
   ></div>
 </section>
@@ -39,40 +39,51 @@ const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
       reactionsEnabled: host.getAttribute("data-reactions-enabled") || "1",
       emitMetadata: host.getAttribute("data-emit-metadata") || "0",
       inputPosition: host.getAttribute("data-input-position") || "top",
-      lang: host.getAttribute("data-lang") || "ko",
+      lang: host.getAttribute("data-lang") || "en",
       loading: host.getAttribute("data-loading") || "lazy",
     };
 
-    function getGiscusTheme() {
-      const root = document.documentElement;
-      const isDark = root.classList.contains("dark-mode") || root.dataset.theme === "dark";
-      return isDark ? "dark_dimmed" : "light";
+    function isDarkMode() {
+      return document.documentElement.classList.contains("dark-mode");
     }
 
-    function postThemeToGiscus() {
+    function getGiscusTheme() {
+      return isDarkMode() ? "dark_dimmed" : "light";
+    }
+
+    function postConfigToGiscus() {
       const iframe = document.querySelector("iframe.giscus-frame");
       if (!iframe) return false;
 
       iframe.contentWindow?.postMessage(
-        { giscus: { setConfig: { theme: getGiscusTheme() } } },
+        {
+          giscus: {
+            setConfig: {
+              theme: getGiscusTheme(),
+              lang: cfg.lang, 
+            },
+          },
+        },
         "https://giscus.app"
       );
       return true;
     }
 
-    function syncThemeWithRetry(tries = 20) {
-      if (postThemeToGiscus()) return;
-      if (tries <= 0) return;
-      setTimeout(() => syncThemeWithRetry(tries - 1), 200);
+    function retryPostConfig(tries = 25) {
+      if (postConfigToGiscus()) return true;
+      if (tries <= 0) return false;
+      setTimeout(() => retryPostConfig(tries - 1), 200);
+      return false;
     }
 
-    function mountGiscus(forceRemount = false) {
-      if (!forceRemount && document.querySelector("iframe.giscus-frame")) {
-        syncThemeWithRetry();
-        return;
-      }
-
+    function clearGiscus() {
       host.innerHTML = "";
+      const oldFrame = document.querySelector("iframe.giscus-frame");
+      if (oldFrame) oldFrame.remove();
+    }
+
+    function mountGiscus() {
+      clearGiscus();
 
       const s = document.createElement("script");
       s.src = "https://giscus.app/client.js";
@@ -83,34 +94,42 @@ const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
       s.setAttribute("data-repo-id", cfg.repoId);
       s.setAttribute("data-category", cfg.category);
       s.setAttribute("data-category-id", cfg.categoryId);
+
       s.setAttribute("data-mapping", cfg.mapping);
       s.setAttribute("data-strict", cfg.strict);
       s.setAttribute("data-reactions-enabled", cfg.reactionsEnabled);
       s.setAttribute("data-emit-metadata", cfg.emitMetadata);
       s.setAttribute("data-input-position", cfg.inputPosition);
-      s.setAttribute("data-lang", cfg.lang);
+
+      s.setAttribute("data-lang", "en");
+
       s.setAttribute("data-loading", cfg.loading);
 
       s.setAttribute("data-theme", getGiscusTheme());
 
       host.appendChild(s);
 
-      syncThemeWithRetry();
+      retryPostConfig();
+
+      setTimeout(() => retryPostConfig(), 1200);
     }
 
-    mountGiscus(false);
+    mountGiscus();
 
     document.addEventListener("astro:page-load", () => {
-      mountGiscus(true);
+      mountGiscus();
     });
 
-    const obs = new MutationObserver(() => syncThemeWithRetry());
+    const obs = new MutationObserver(() => {
+      retryPostConfig();
+    });
+
     obs.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["class", "data-theme"],
+      attributeFilter: ["class"],
     });
 
-    window.addEventListener("foret:theme-change", () => syncThemeWithRetry());
+    window.addEventListener("foret:theme-change", () => retryPostConfig());
   })();
 </script>
 
