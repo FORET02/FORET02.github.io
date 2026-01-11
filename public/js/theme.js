@@ -3,12 +3,7 @@
   const darkClass = 'dark-mode';
   const doc = document.documentElement;
 
-  try {
-    const stored = localStorage.getItem(storageKey);
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const isStored = stored === 'dark' || stored === 'light';
-    const mode = isStored ? stored : prefersDark ? 'dark' : 'light';
-
+  const applyTheme = (mode, { persist = false } = {}) => {
     if (mode === 'dark') {
       doc.classList.add(darkClass);
     } else {
@@ -16,7 +11,31 @@
     }
 
     doc.dataset.theme = mode;
-  } catch (err) {
-    // Swallow storage access issues silently.
+
+    if (persist) {
+      try {
+        localStorage.setItem(storageKey, mode);
+      } catch {
+        // ignore storage errors
+      }
+    }
+
+    window.dispatchEvent(
+      new CustomEvent('foret:theme-change', { detail: { theme: mode } })
+    );
+  };
+
+  try {
+    const stored = localStorage.getItem(storageKey);
+    const prefersDark =
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    const isStored = stored === 'dark' || stored === 'light';
+    const mode = isStored ? stored : prefersDark ? 'dark' : 'light';
+
+    applyTheme(mode, { persist: false });
+  } catch {
+
   }
 })();

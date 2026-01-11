@@ -2,6 +2,7 @@
 import Layout from './Layout.astro';
 import AIWarning from '@components/AIWarning.astro';
 import FloatingTOC from '@components/FloatingTOC.astro';
+import GiscusComments from '@components/GiscusComments.astro';
 import siteConfig from '@config/site';
 import {
   type PostEntry,
@@ -154,6 +155,8 @@ const alternates = (() => {
         <div class="text-block article__text-block">
           <Content />
         </div>
+
+        <GiscusComments lang={lang} />
 
         {siteConfig.features.postNavigation && (
           <div class="post-navigation">

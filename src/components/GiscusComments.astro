@@ -1,0 +1,50 @@
+---
+const repo = import.meta.env.PUBLIC_GISCUS_REPO;
+const repoId = import.meta.env.PUBLIC_GISCUS_REPO_ID;
+const category = import.meta.env.PUBLIC_GISCUS_CATEGORY;
+const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
+---
+
+<section class="giscus-wrap">
+  <div
+    id="giscus_thread"
+    data-repo={repo}
+    data-repo-id={repoId}
+    data-category={category}
+    data-category-id={categoryId}
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="top"
+    data-lang="en"
+    data-loading="lazy"
+  ></div>
+</section>
+
+<script is:inline>
+  (() => {
+    const host = document.getElementById("giscus_thread");
+    if (!host) return;
+
+    if (host.querySelector("script")) return;
+
+    const s = document.createElement("script");
+    s.src = "https://giscus.app/client.js";
+    s.async = true;
+    s.crossOrigin = "anonymous";
+
+    for (const [k, v] of Object.entries(host.dataset)) {
+      s.setAttribute(`data-${k.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`, v);
+    }
+
+    const theme = document.documentElement?.dataset?.theme === "dark" ? "dark_dimmed" : "light";
+    s.setAttribute("data-theme", theme);
+
+    host.appendChild(s);
+  })();
+</script>
+
+<style>
+  .giscus-wrap { margin-top: 3rem; padding-top: 2rem; }
+</style>
