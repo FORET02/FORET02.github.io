@@ -28,42 +28,48 @@ function cleanMarkdown(body) {
     .trim();
 }
 
+function toAbsoluteUrl(pathOrUrl) {
+  if (!pathOrUrl) return null;
+  if (pathOrUrl.startsWith('http')) return pathOrUrl;
+
+  const base = siteConfig.siteUrl.replace(/\/$/, '');
+  const path = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+  return `${base}${path}`;
+}
+
 export async function GET() {
   const posts = await getPosts({ includeDrafts: isDevelopment });
 
-  const payload = posts.map((entry) => ({
-    title: entry.data.h1 ?? entry.data.title ?? 'Untitled',
-    description: entry.data.description ?? entry.data.announcement ?? '',
-    url: new URL(getPostPermalink(entry), siteConfig.siteUrl).toString(),
-    date: formatDate(entry.data.date, getPostLanguage(entry)),
-    publishedAt: entry.data.date.toISOString(),
-    content: (() => {
-      const raw = cleanMarkdown(entry.body);
-      if (!raw) {
-        return '';
-      }
+  const payload = posts.map((entry) => {
+    const category = getPostCategory(entry);
+    const lang = getPostLanguage(entry);
 
-      if (raw.length <= MAX_CONTENT_LENGTH) {
-        return raw;
-      }
+    const raw = cleanMarkdown(entry.body || '');
+    const content =
+      raw.length <= MAX_CONTENT_LENGTH
+        ? raw
+        : `${raw.slice(0, MAX_CONTENT_LENGTH).trim()}…`;
 
-      const snippet = raw.slice(0, MAX_CONTENT_LENGTH).trim();
-      return `${snippet}…`;
-    })(),
-    imageUrl: (() => {
-      const image = getPostImage(entry);
-      return image.startsWith('http')
-        ? image
-        : `${siteConfig.siteUrl}${image}`;
-    })(),
-    category: getPostCategory(entry),
-    icon: siteConfig.categories[getPostCategory(entry)]?.icon ?? '📂',
-    lang: getPostLanguage(entry),
-    categoryText:
-      siteConfig.categories[getPostCategory(entry)]?.label?.[getPostLanguage(entry)] ??
-      siteConfig.categories[getPostCategory(entry)]?.label?.[DEFAULT_LOCALE] ??
-      getPostCategory(entry),
-  }));
+    const imageCandidate = getPostImage(entry) || siteConfig.featuredImageFallback;
+    const imageUrl = toAbsoluteUrl(imageCandidate);
+
+    return {
+      title: entry.data.h1 ?? entry.data.title ?? 'Untitled',
+      description: entry.data.description ?? entry.data.announcement ?? '',
+      url: new URL(getPostPermalink(entry), siteConfig.siteUrl).toString(),
+      date: formatDate(entry.data.date, lang),
+      publishedAt: entry.data.date?.toISOString?.() ?? '',
+      content,
+      imageUrl,
+      category,
+      icon: siteConfig.categories[category]?.icon ?? '📂',
+      lang,
+      categoryText:
+        siteConfig.categories[category]?.label?.[lang] ??
+        siteConfig.categories[category]?.label?.[DEFAULT_LOCALE] ??
+        category,
+    };
+  });
 
   return new Response(JSON.stringify(payload, null, 2), {
     headers: {
