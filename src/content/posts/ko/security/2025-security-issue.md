@@ -1,6 +1,6 @@
 ---
-title: '2025 주요 보안 이슈'
-h1: 2025 주요 보안 이슈
+title: '2025년 주요 보안 이슈'
+h1: 2025년 주요 보안 이슈
 description: >-
   2025년 주요 보안 이슈 12개를 데일리시큐 뉴스 기사와 KISA Insight[리더들이 전망하는 2026년 사이버보안 이슈] 기반으로 정리하였다.
 announcement: '2025년 주요 보안 이슈 12개를 데일리시큐 뉴스 기사와 KISA Insight[리더들이 전망하는 2026년 사이버보안 이슈] 기반으로 정리하였다.'
@@ -139,8 +139,12 @@ SKT에 잇따른 통신 침해사고로 큰 충격에 빠진 사건이다. 특�
 
 ## References
 
-- 2025 상반기 보안 12대 사건·사고[데일리시큐]: 
-  https://www.dailysecu.com/news/articleView.html?idxno=203952
+- 보안뉴스[교원그룹 랜섬웨어 공격…KISA에 침해사고 신고](https://www.boannews.com/media/view.asp?idx=141438)
 
-- KISA Insight 2025 Vol.03 「리더들이 전망하는 2026년 사이버보안 이슈」  
-  https://www.kisa.or.kr/20301/form?postSeq=32&page=1
+- ZDNet Korea[교원그룹 해킹 사고, 데이터 유출 정황 확인…조사 확대](https://zdnet.co.kr/view/?no=20260113141226)
+
+- YTN[교원그룹 해킹 정황…554만 명 영향 가능성](https://www.ytn.co.kr/_ln/0102_202601141106507111)
+
+- 한겨레[교원그룹 랜섬웨어 공격…개인정보 유출 여부 조사 중](https://www.hani.co.kr/arti/economy/consumer/1239413.html)
+
+- 바이라인네트워크[교원그룹 해킹, 무엇이 확인됐고 무엇이 남았나](https://byline.network/2026/01/13-587/)
